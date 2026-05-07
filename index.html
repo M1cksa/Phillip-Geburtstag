@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday Philip 🎉</title>
+<meta name="description" content="Alles Gute zum 13. Geburtstag, Philip!">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Animated background orbs -->
+<div class="bg-orbs" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+</div>
+
+<!-- Cursor trail container -->
+<div class="cursor-trail" aria-hidden="true"></div>
+
+<!-- Scroll progress bar -->
+<div class="scroll-progress"><div class="fill"></div></div>
+
+<!-- Sound toggle -->
+<button class="sound-toggle" data-magnetic aria-label="Sound an/aus">
+  <span class="bars"><span></span><span></span><span></span><span></span></span>
+  <span class="label">SOUND OFF</span>
+</button>
+
+<!-- Custom cursor (mouse devices only) -->
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
+
+<!-- ===== INTRO OVERLAY ===== -->
+<div id="intro-overlay">
+  <div class="intro-label">12 · 05 · 2026</div>
+  <div class="intro-heading">Happy Birthday,<br><em>Philip!</em></div>
+  <button class="intro-btn" data-magnetic>Los geht's 🎉</button>
+</div>
+
+<!-- ===== HERO ===== -->
+<section id="hero" data-parallax-scene>
+  <div class="hero-bg-glow"></div>
+  <div class="hero-eyebrow reveal">Happy 13th Birthday</div>
+  <h1 class="hero-name" data-split-letters>Philip</h1>
+  <p class="hero-subline reveal delay-3">Heute. Nur um <em>dich.</em></p>
+  <div class="hero-date-pill reveal delay-4" data-magnetic>
+    <span class="dot"></span>
+    <span id="days-left">12.05.2026</span>
+  </div>
+  <div class="hero-scroll-cue">
+    <span>scroll</span>
+    <div class="cue-line"></div>
+  </div>
+</section>
+
+<!-- ===== HOBBIES ===== -->
+<section id="hobbies">
+  <div class="section-label reveal" data-scramble>Sport · Games · Chill</div>
+  <h2 class="hobbies-heading reveal delay-1">
+    Sport. Games.<br><em>Alles dabei.</em>
+  </h2>
+  <div class="hobbies-grid">
+    <div class="hobby-card blue reveal" data-tilt>
+      <div class="accent-blob"></div>
+      <span class="card-icon">⚽</span>
+      <div class="card-title">Fußball</div>
+      <div class="card-sub">Lieblingssport · Immer am Ball</div>
+      <div class="card-shine"></div>
+    </div>
+    <div class="hobby-card yellow reveal delay-1" data-tilt>
+      <div class="accent-blob"></div>
+      <span class="card-icon">🎾</span>
+      <div class="card-title">Tennis</div>
+      <div class="card-sub">Backhand · Hard hits</div>
+      <div class="card-shine"></div>
+    </div>
+    <div class="hobby-card green reveal delay-2" data-tilt>
+      <div class="accent-blob"></div>
+      <span class="card-icon">💬</span>
+      <div class="card-title">Discord</div>
+      <div class="card-sub">Voice on · 24/7</div>
+      <div class="card-shine"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Marquee -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span>Happy Birthday <span class="dot"></span> Philip <span class="dot"></span> 13 Jahre <span class="dot"></span> 12.05.2026 <span class="dot"></span> Dream Big <span class="dot"></span> </span>
+    <span>Happy Birthday <span class="dot"></span> Philip <span class="dot"></span> 13 Jahre <span class="dot"></span> 12.05.2026 <span class="dot"></span> Dream Big <span class="dot"></span> </span>
+  </div>
+</div>
+
+<!-- ===== GAMES ===== -->
+<section id="games">
+  <div class="section-label reveal" data-scramble>Currently Playing</div>
+  <h2 class="hobbies-heading reveal delay-1">
+    Drei Games.<br><em>Ein Pro.</em>
+  </h2>
+  <div class="games-row">
+    <div class="game-card reveal" data-tilt>
+      <div class="glow-bg"></div>
+      <div class="num">01 / FC 26</div>
+      <div class="g-icon">⚽</div>
+      <div class="g-name">FC 26</div>
+      <div class="g-tag">Ultimate Team</div>
+      <div class="card-shine"></div>
+    </div>
+    <div class="game-card reveal delay-2" data-tilt>
+      <div class="glow-bg"></div>
+      <div class="num">02 / FORTNITE</div>
+      <div class="g-icon">🎯</div>
+      <div class="g-name">Fortnite</div>
+      <div class="g-tag">Squad · W's only</div>
+      <div class="card-shine"></div>
+    </div>
+    <div class="game-card reveal delay-4" data-tilt>
+      <div class="glow-bg"></div>
+      <div class="num">03 / MINECRAFT</div>
+      <div class="g-icon">⛏️</div>
+      <div class="g-name">Minecraft</div>
+      <div class="g-tag">Survival · Builder</div>
+      <div class="card-shine"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DISCORD / BUM BUM ===== -->
+<section id="discord">
+  <div class="section-label reveal" data-scramble>Discord-Edition</div>
+  <h2 class="hobbies-heading reveal delay-1">
+    Discord, jeden Tag.<br>Schule, <em>irgendwie auch.</em>
+  </h2>
+  <div class="discord-chat reveal delay-2">
+    <div class="discord-bubble">
+      <div class="user">Philip · heute</div>
+      yo was geht
+    </div>
+    <div class="discord-bubble right">
+      <div class="user">Micksa · heute</div>
+      nix, zocken?
+    </div>
+    <div class="discord-bubble">
+      <div class="user">Philip · heute</div>
+      ja komm
+    </div>
+    <div class="discord-bubble right bum-trigger" style="cursor:pointer">
+      <div class="user">Micksa · heute — klick mich 👇</div>
+      <strong style="color:var(--yellow); font-size:1.2rem;">Bum Bum</strong>
+    </div>
+  </div>
+</section>
+
+<!-- ===== BRIEF ===== -->
+<section id="brief">
+  <div class="brief-card reveal">
+    <div class="brief-header">
+      <span>Brief · 001</span>
+      <span>Von: Micksa → Philip</span>
+    </div>
+    <div class="brief-text">
+      <p>Philip,</p>
+      <p>Happy Birthday! Du wirst 13 — und ich hab keine Ahnung was ich hier großartig schreiben soll, also: du bist ein cooler Typ, wir haben Spaß zusammen, und das reicht eigentlich.</p>
+      <p>FC 26, Fortnite, Minecraft — alles gut. Auch wenn du manchmal gewinnst 🙄</p>
+      <p>Jedenfalls. Genieß den Tag. Und falls du mich auf Discord siehst... <em>Bum Bum.</em><span class="brief-cursor"></span></p>
+    </div>
+    <div class="brief-signature">
+      <span class="from">Signed · 12.05.2026</span>
+      <span class="name">Micksa</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FINALE ===== -->
+<section id="finale">
+  <div class="finale-orb"></div>
+  <div class="finale-pre reveal">— Für Philip —</div>
+  <h2 class="finale-hb reveal delay-1">
+    Happy<br><em>Birthday</em>
+  </h2>
+  <div class="finale-num" data-finale-num>13</div>
+  <p class="finale-sub reveal delay-3">Mach's gut. Genieß den Tag. <em>Dream big.</em></p>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<section id="footer">
+  <div class="footer-text reveal">
+    Mit viel Liebe gebaut von <em>Micksa</em> · 2026
+  </div>
+  <div class="footer-text reveal delay-1" style="opacity:0.5; font-size:9px;">
+    PSST · tippe „philip" für eine kleine Überraschung
+  </div>
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>

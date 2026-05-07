@@ -23,15 +23,25 @@
 <!-- Scroll progress bar -->
 <div class="scroll-progress"><div class="fill"></div></div>
 
-<!-- Sound toggle -->
-<button class="sound-toggle" data-magnetic aria-label="Sound an/aus">
-  <span class="bars"><span></span><span></span><span></span><span></span></span>
-  <span class="label">SOUND OFF</span>
-</button>
-
 <!-- Custom cursor (mouse devices only) -->
 <div class="cursor-dot"></div>
 <div class="cursor-ring"></div>
+
+<!-- Easter egg counter -->
+<div class="egg-counter" id="egg-counter" title="Easter Eggs">
+  <span id="egg-found">0</span>/7 🔍
+</div>
+
+<!-- Achievement toast -->
+<div id="achievement" aria-live="polite">
+  <div class="ach-icon" id="ach-icon">🏆</div>
+  <div class="ach-body">
+    <div class="ach-label">Achievement Unlocked</div>
+    <div class="ach-title" id="ach-title">—</div>
+    <div class="ach-desc" id="ach-desc">—</div>
+  </div>
+  <div class="ach-progress" id="ach-progress"></div>
+</div>
 
 <!-- ===== INTRO OVERLAY ===== -->
 <div id="intro-overlay">
@@ -44,7 +54,7 @@
 <section id="hero" data-parallax-scene>
   <div class="hero-bg-glow"></div>
   <div class="hero-eyebrow reveal">Happy 13th Birthday</div>
-  <h1 class="hero-name" data-split-letters>Philip</h1>
+  <h1 class="hero-name">Philip</h1>
   <p class="hero-subline reveal delay-3">Heute. Nur um <em>dich.</em></p>
   <div class="hero-date-pill reveal delay-4" data-magnetic>
     <span class="dot"></span>
@@ -129,28 +139,28 @@
   </div>
 </section>
 
-<!-- ===== DISCORD / BUM BUM ===== -->
+<!-- ===== CHAT ===== -->
 <section id="discord">
-  <div class="section-label reveal" data-scramble>Discord-Edition</div>
+  <div class="section-label reveal" data-scramble>Jeden Tag</div>
   <h2 class="hobbies-heading reveal delay-1">
-    Discord, jeden Tag.<br>Schule, <em>irgendwie auch.</em>
+    Immer irgendwo<br><em>online.</em>
   </h2>
   <div class="discord-chat reveal delay-2">
     <div class="discord-bubble">
       <div class="user">Philip · heute</div>
-      yo was geht
+      yo
     </div>
     <div class="discord-bubble right">
       <div class="user">Micksa · heute</div>
-      nix, zocken?
+      was geht
     </div>
     <div class="discord-bubble">
       <div class="user">Philip · heute</div>
-      ja komm
+      alles gut, du?
     </div>
-    <div class="discord-bubble right bum-trigger" style="cursor:pointer">
-      <div class="user">Micksa · heute — klick mich 👇</div>
-      <strong style="color:var(--yellow); font-size:1.2rem;">Bum Bum</strong>
+    <div class="discord-bubble right bum-trigger" style="cursor:pointer" title="🤔">
+      <div class="user">Micksa · heute</div>
+      auch gut 👋
     </div>
   </div>
 </section>
@@ -164,9 +174,9 @@
     </div>
     <div class="brief-text">
       <p>Philip,</p>
-      <p>Happy Birthday! Du wirst 13 — und ich hab keine Ahnung was ich hier großartig schreiben soll, also: du bist ein cooler Typ, wir haben Spaß zusammen, und das reicht eigentlich.</p>
-      <p>FC 26, Fortnite, Minecraft — alles gut. Auch wenn du manchmal gewinnst 🙄</p>
-      <p>Jedenfalls. Genieß den Tag. Und falls du mich auf Discord siehst... <em>Bum Bum.</em><span class="brief-cursor"></span></p>
+      <p>ich hab keine Ahnung was man hier schreibt. Also kurz: du wirst 13, was irgendwie schnell ging.</p>
+      <p>Du bist ein guter Typ — auch wenn du auf FC manchmal gewinnst, was ich nie zugeben werde 🙄</p>
+      <p>Jedenfalls. Genieß den Tag.<em> Alles Gute.</em><span class="brief-cursor"></span></p>
     </div>
     <div class="brief-signature">
       <span class="from">Signed · 12.05.2026</span>

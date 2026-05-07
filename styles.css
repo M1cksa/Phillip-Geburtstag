@@ -428,29 +428,18 @@ section {
   letter-spacing: -0.02em;
   padding: 0.05em 0.1em;
   position: relative;
-}
-
-/* Split-letter spans injected by JS */
-.hero-name .letter-wrap {
   background: linear-gradient(135deg, #fff 0%, var(--blue-light) 55%, var(--yellow) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   background-size: 200% 200%;
-  animation: heroShimmer 6s ease-in-out infinite alternate;
-  display: inline-block;
+  animation: heroReveal 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) 0.6s both,
+             heroShimmer 6s ease-in-out 1.8s infinite alternate;
 }
 
-.hero-name .letter {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(0.5em) scale(0.8);
-  transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
-              transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-.hero-name .letter.in {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+@keyframes heroReveal {
+  from { opacity: 0; filter: blur(12px); transform: scale(0.88) translateY(0.2em); }
+  to   { opacity: 1; filter: blur(0); transform: scale(1) translateY(0); }
 }
 
 @keyframes heroShimmer {
@@ -1009,4 +998,139 @@ section {
   .brief-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
   .hero-scroll-cue { display: none; }
   .cursor-dot, .cursor-ring { display: none; }
+}
+
+/* ========== Easter egg counter ========== */
+.egg-counter {
+  position: fixed;
+  bottom: 28px;
+  left: 28px;
+  z-index: 500;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--fg-dim);
+  opacity: 0.35;
+  transition: opacity 0.3s;
+  backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  padding: 8px 14px;
+}
+.egg-counter:hover { opacity: 1; }
+.egg-counter.found-all {
+  opacity: 1;
+  border-color: var(--yellow);
+  color: var(--yellow);
+  box-shadow: 0 0 20px var(--yellow-glow);
+}
+
+/* ========== Achievement toast ========== */
+#achievement {
+  position: fixed;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(calc(100% + 4rem));
+  background: rgba(8, 8, 12, 0.95);
+  backdrop-filter: blur(24px);
+  border: 1.5px solid rgba(255,255,255,0.14);
+  border-radius: 18px;
+  padding: 1.1rem 1.4rem 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  z-index: 8500;
+  transition: transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1);
+  min-width: 280px;
+  max-width: 360px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+  pointer-events: none;
+  overflow: hidden;
+}
+#achievement.show {
+  transform: translateX(-50%) translateY(0);
+}
+.ach-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.ach-body { flex: 1; min-width: 0; }
+.ach-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--yellow);
+  margin-bottom: 0.25rem;
+}
+.ach-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  line-height: 1.2;
+}
+.ach-desc {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--fg-dim);
+  margin-top: 0.2rem;
+}
+.ach-progress {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: rgba(255,255,255,0.06);
+}
+.ach-progress::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 100%;
+  background: linear-gradient(90deg, var(--blue), var(--yellow));
+  transform-origin: left;
+}
+#achievement.show .ach-progress::after {
+  animation: achBar 3.5s linear forwards;
+}
+@keyframes achBar {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+/* ========== Hero sparkles ========== */
+.sparkle {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9002;
+  background: var(--yellow);
+  box-shadow: 0 0 8px var(--yellow-glow);
+}
+
+/* ========== Screen flash ========== */
+.screen-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 7500;
+}
+
+/* ========== Hero name clickable hint ========== */
+.hero-name { cursor: default; }
+.hero-name:hover { cursor: crosshair; }
+
+/* ========== Finale num clickable ========== */
+.finale-num { cursor: pointer; }
+.finale-num:hover {
+  text-shadow: 0 0 120px var(--yellow-glow), 0 0 40px rgba(255,216,77,0.8) !important;
+}
+
+/* ========== Konami flash ========== */
+@keyframes konamiFlash {
+  0%, 100% { opacity: 0; }
+  10%, 90% { opacity: 1; }
 }

@@ -436,29 +436,18 @@ section {
   letter-spacing: -0.02em;
   padding: 0.05em 0.1em;
   position: relative;
-}
-
-/* Split-letter spans injected by JS */
-.hero-name .letter-wrap {
   background: linear-gradient(135deg, #fff 0%, var(--blue-light) 55%, var(--yellow) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   background-size: 200% 200%;
-  animation: heroShimmer 6s ease-in-out infinite alternate;
-  display: inline-block;
+  animation: heroReveal 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) 0.6s both,
+             heroShimmer 6s ease-in-out 1.8s infinite alternate;
 }
 
-.hero-name .letter {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(0.5em) scale(0.8);
-  transition: opacity 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
-              transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-.hero-name .letter.in {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+@keyframes heroReveal {
+  from { opacity: 0; filter: blur(12px); transform: scale(0.88) translateY(0.2em); }
+  to   { opacity: 1; filter: blur(0); transform: scale(1) translateY(0); }
 }
 
 @keyframes heroShimmer {
@@ -1019,6 +1008,141 @@ section {
   .cursor-dot, .cursor-ring { display: none; }
 }
 
+/* ========== Easter egg counter ========== */
+.egg-counter {
+  position: fixed;
+  bottom: 28px;
+  left: 28px;
+  z-index: 500;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--fg-dim);
+  opacity: 0.35;
+  transition: opacity 0.3s;
+  backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  padding: 8px 14px;
+}
+.egg-counter:hover { opacity: 1; }
+.egg-counter.found-all {
+  opacity: 1;
+  border-color: var(--yellow);
+  color: var(--yellow);
+  box-shadow: 0 0 20px var(--yellow-glow);
+}
+
+/* ========== Achievement toast ========== */
+#achievement {
+  position: fixed;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(calc(100% + 4rem));
+  background: rgba(8, 8, 12, 0.95);
+  backdrop-filter: blur(24px);
+  border: 1.5px solid rgba(255,255,255,0.14);
+  border-radius: 18px;
+  padding: 1.1rem 1.4rem 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  z-index: 8500;
+  transition: transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1);
+  min-width: 280px;
+  max-width: 360px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+  pointer-events: none;
+  overflow: hidden;
+}
+#achievement.show {
+  transform: translateX(-50%) translateY(0);
+}
+.ach-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.ach-body { flex: 1; min-width: 0; }
+.ach-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--yellow);
+  margin-bottom: 0.25rem;
+}
+.ach-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  line-height: 1.2;
+}
+.ach-desc {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--fg-dim);
+  margin-top: 0.2rem;
+}
+.ach-progress {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: rgba(255,255,255,0.06);
+}
+.ach-progress::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 100%;
+  background: linear-gradient(90deg, var(--blue), var(--yellow));
+  transform-origin: left;
+}
+#achievement.show .ach-progress::after {
+  animation: achBar 3.5s linear forwards;
+}
+@keyframes achBar {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+/* ========== Hero sparkles ========== */
+.sparkle {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9002;
+  background: var(--yellow);
+  box-shadow: 0 0 8px var(--yellow-glow);
+}
+
+/* ========== Screen flash ========== */
+.screen-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 7500;
+}
+
+/* ========== Hero name clickable hint ========== */
+.hero-name { cursor: default; }
+.hero-name:hover { cursor: crosshair; }
+
+/* ========== Finale num clickable ========== */
+.finale-num { cursor: pointer; }
+.finale-num:hover {
+  text-shadow: 0 0 120px var(--yellow-glow), 0 0 40px rgba(255,216,77,0.8) !important;
+}
+
+/* ========== Konami flash ========== */
+@keyframes konamiFlash {
+  0%, 100% { opacity: 0; }
+  10%, 90% { opacity: 1; }
+}
+
 </style>
 </head>
 <body>
@@ -1037,15 +1161,25 @@ section {
 <!-- Scroll progress bar -->
 <div class="scroll-progress"><div class="fill"></div></div>
 
-<!-- Sound toggle -->
-<button class="sound-toggle" data-magnetic aria-label="Sound an/aus">
-  <span class="bars"><span></span><span></span><span></span><span></span></span>
-  <span class="label">SOUND OFF</span>
-</button>
-
 <!-- Custom cursor (mouse devices only) -->
 <div class="cursor-dot"></div>
 <div class="cursor-ring"></div>
+
+<!-- Easter egg counter -->
+<div class="egg-counter" id="egg-counter" title="Easter Eggs">
+  <span id="egg-found">0</span>/7 🔍
+</div>
+
+<!-- Achievement toast -->
+<div id="achievement" aria-live="polite">
+  <div class="ach-icon" id="ach-icon">🏆</div>
+  <div class="ach-body">
+    <div class="ach-label">Achievement Unlocked</div>
+    <div class="ach-title" id="ach-title">—</div>
+    <div class="ach-desc" id="ach-desc">—</div>
+  </div>
+  <div class="ach-progress" id="ach-progress"></div>
+</div>
 
 <!-- ===== INTRO OVERLAY ===== -->
 <div id="intro-overlay">
@@ -1058,7 +1192,7 @@ section {
 <section id="hero" data-parallax-scene>
   <div class="hero-bg-glow"></div>
   <div class="hero-eyebrow reveal">Happy 13th Birthday</div>
-  <h1 class="hero-name" data-split-letters>Philip</h1>
+  <h1 class="hero-name">Philip</h1>
   <p class="hero-subline reveal delay-3">Heute. Nur um <em>dich.</em></p>
   <div class="hero-date-pill reveal delay-4" data-magnetic>
     <span class="dot"></span>
@@ -1143,28 +1277,28 @@ section {
   </div>
 </section>
 
-<!-- ===== DISCORD / BUM BUM ===== -->
+<!-- ===== CHAT ===== -->
 <section id="discord">
-  <div class="section-label reveal" data-scramble>Discord-Edition</div>
+  <div class="section-label reveal" data-scramble>Jeden Tag</div>
   <h2 class="hobbies-heading reveal delay-1">
-    Discord, jeden Tag.<br>Schule, <em>irgendwie auch.</em>
+    Immer irgendwo<br><em>online.</em>
   </h2>
   <div class="discord-chat reveal delay-2">
     <div class="discord-bubble">
       <div class="user">Philip · heute</div>
-      yo was geht
+      yo
     </div>
     <div class="discord-bubble right">
       <div class="user">Micksa · heute</div>
-      nix, zocken?
+      was geht
     </div>
     <div class="discord-bubble">
       <div class="user">Philip · heute</div>
-      ja komm
+      alles gut, du?
     </div>
-    <div class="discord-bubble right bum-trigger" style="cursor:pointer">
-      <div class="user">Micksa · heute — klick mich 👇</div>
-      <strong style="color:var(--yellow); font-size:1.2rem;">Bum Bum</strong>
+    <div class="discord-bubble right bum-trigger" style="cursor:pointer" title="🤔">
+      <div class="user">Micksa · heute</div>
+      auch gut 👋
     </div>
   </div>
 </section>
@@ -1178,9 +1312,9 @@ section {
     </div>
     <div class="brief-text">
       <p>Philip,</p>
-      <p>Happy Birthday! Du wirst 13 — und ich hab keine Ahnung was ich hier großartig schreiben soll, also: du bist ein cooler Typ, wir haben Spaß zusammen, und das reicht eigentlich.</p>
-      <p>FC 26, Fortnite, Minecraft — alles gut. Auch wenn du manchmal gewinnst 🙄</p>
-      <p>Jedenfalls. Genieß den Tag. Und falls du mich auf Discord siehst... <em>Bum Bum.</em><span class="brief-cursor"></span></p>
+      <p>ich hab keine Ahnung was man hier schreibt. Also kurz: du wirst 13, was irgendwie schnell ging.</p>
+      <p>Du bist ein guter Typ — auch wenn du auf FC manchmal gewinnst, was ich nie zugeben werde 🙄</p>
+      <p>Jedenfalls. Genieß den Tag.<em> Alles Gute.</em><span class="brief-cursor"></span></p>
     </div>
     <div class="brief-signature">
       <span class="from">Signed · 12.05.2026</span>
@@ -1219,118 +1353,29 @@ section {
 (function () {
   'use strict';
 
-  // ============ Audio ============
-  let audioCtx = null, masterGain = null, ambientNodes = null, soundOn = false;
+  // ============ Audio (nur Bum Bum) ============
+  let audioCtx = null;
 
   function initAudio() {
     if (audioCtx) return;
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
       audioCtx = new AC();
-      masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0;
-      masterGain.connect(audioCtx.destination);
     } catch (e) {}
   }
 
-  function startAmbient() {
-    if (!audioCtx || ambientNodes) return;
-    const now = audioCtx.currentTime;
-
-    const osc1 = audioCtx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = 55;
-    const osc2 = audioCtx.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = 82.4;
-    const oscGain = audioCtx.createGain(); oscGain.gain.value = 0.12;
-
-    const lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.08;
-    const lfoG = audioCtx.createGain(); lfoG.gain.value = 0.06;
-    lfo.connect(lfoG).connect(oscGain.gain);
-
-    const bufSize = 2 * audioCtx.sampleRate;
-    const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < bufSize; i++) d[i] = Math.random() * 2 - 1;
-    const noise = audioCtx.createBufferSource(); noise.buffer = buf; noise.loop = true;
-    const nf = audioCtx.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = 350;
-    const ng = audioCtx.createGain(); ng.gain.value = 0.025;
-    noise.connect(nf).connect(ng).connect(masterGain);
-
-    osc1.connect(oscGain); osc2.connect(oscGain); oscGain.connect(masterGain);
-    [osc1, osc2, lfo, noise].forEach(n => n.start(now));
-    ambientNodes = { osc1, osc2, lfo, noise };
-  }
-
-  function stopAmbient() {
-    if (!ambientNodes || !audioCtx) return;
-    const now = audioCtx.currentTime;
-    try { Object.values(ambientNodes).forEach(n => n.stop(now + 0.05)); } catch (e) {}
-    ambientNodes = null;
-  }
-
-  function sfxClick(freq = 440, dur = 0.08, vol = 0.1) {
-    if (!audioCtx || !soundOn) return;
-    const t = audioCtx.currentTime;
-    const o = audioCtx.createOscillator(); o.type = 'triangle'; o.frequency.value = freq;
-    const g = audioCtx.createGain(); g.gain.value = 0;
-    g.gain.linearRampToValueAtTime(vol, t + 0.005);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g).connect(masterGain); o.start(t); o.stop(t + dur + 0.02);
-  }
-
   function sfxBum() {
-    if (!audioCtx || !soundOn) return;
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
     const t = audioCtx.currentTime;
     const o = audioCtx.createOscillator(); o.type = 'sine';
     o.frequency.setValueAtTime(110, t);
     o.frequency.exponentialRampToValueAtTime(38, t + 0.35);
     const g = audioCtx.createGain(); g.gain.value = 0;
-    g.gain.linearRampToValueAtTime(0.38, t + 0.01);
+    g.gain.linearRampToValueAtTime(0.3, t + 0.01);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
-    o.connect(g).connect(masterGain); o.start(t); o.stop(t + 0.6);
-  }
-
-  function sfxWhoosh() {
-    if (!audioCtx || !soundOn) return;
-    const t = audioCtx.currentTime;
-    const size = audioCtx.sampleRate * 0.5;
-    const buf = audioCtx.createBuffer(1, size, audioCtx.sampleRate);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < size; i++) d[i] = Math.random() * 2 - 1;
-    const src = audioCtx.createBufferSource(); src.buffer = buf;
-    const filt = audioCtx.createBiquadFilter(); filt.type = 'bandpass'; filt.Q.value = 1.5;
-    filt.frequency.setValueAtTime(150, t);
-    filt.frequency.exponentialRampToValueAtTime(3500, t + 0.35);
-    const g = audioCtx.createGain(); g.gain.value = 0;
-    g.gain.linearRampToValueAtTime(0.18, t + 0.04);
-    g.gain.linearRampToValueAtTime(0, t + 0.45);
-    src.connect(filt).connect(g).connect(masterGain); src.start(t); src.stop(t + 0.5);
-  }
-
-  function sfxPop() {
-    if (!audioCtx || !soundOn) return;
-    const t = audioCtx.currentTime;
-    const o = audioCtx.createOscillator(); o.type = 'sine';
-    o.frequency.setValueAtTime(600, t);
-    o.frequency.exponentialRampToValueAtTime(200, t + 0.12);
-    const g = audioCtx.createGain(); g.gain.value = 0;
-    g.gain.linearRampToValueAtTime(0.2, t + 0.005);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-    o.connect(g).connect(masterGain); o.start(t); o.stop(t + 0.18);
-  }
-
-  function toggleSound() {
-    initAudio();
-    if (!audioCtx) return;
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    soundOn = !soundOn;
-    const target = soundOn ? 0.45 : 0;
-    masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
-    masterGain.gain.setTargetAtTime(target, audioCtx.currentTime, 0.4);
-    const btn = document.querySelector('.sound-toggle');
-    if (btn) {
-      btn.classList.toggle('on', soundOn);
-      btn.querySelector('.label').textContent = soundOn ? 'SOUND ON' : 'SOUND OFF';
-    }
-    if (soundOn) startAmbient(); else setTimeout(stopAmbient, 700);
+    o.connect(g).connect(audioCtx.destination);
+    o.start(t); o.stop(t + 0.6);
   }
 
   // ============ BUM BUM ============
@@ -1440,7 +1485,7 @@ section {
     }
     animateRing();
 
-    const interactives = 'button, a, .hobby-card, .game-card, .bum-trigger, .sound-toggle, .discord-bubble';
+    const interactives = 'button, a, .hobby-card, .game-card, .bum-trigger, .discord-bubble';
     document.querySelectorAll(interactives).forEach(el => {
       el.addEventListener('mouseenter', () => {
         dot.classList.add('hover');
@@ -1535,35 +1580,6 @@ section {
     tick();
   }
 
-  // ============ Split letters (hero name) ============
-  function setupSplitLetters() {
-    document.querySelectorAll('[data-split-letters]').forEach(el => {
-      const text = el.textContent.trim();
-      el.innerHTML = '';
-      el.style.opacity = '1';
-
-      // Wrap in a gradient container
-      const wrap = document.createElement('span');
-      wrap.className = 'letter-wrap';
-
-      [...text].forEach((char, i) => {
-        const span = document.createElement('span');
-        span.className = 'letter';
-        span.textContent = char === ' ' ? ' ' : char;
-        span.style.transitionDelay = `${i * 0.07}s`;
-        wrap.appendChild(span);
-      });
-
-      el.appendChild(wrap);
-    });
-  }
-
-  function triggerLetters() {
-    document.querySelectorAll('.hero-name .letter').forEach(span => {
-      span.classList.add('in');
-    });
-  }
-
   // ============ Finale number count-up ============
   function setupFinaleNum() {
     const el = document.querySelector('[data-finale-num]');
@@ -1594,13 +1610,8 @@ section {
     const btn = overlay.querySelector('.intro-btn');
     const go = () => {
       initAudio();
-      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-      if (!soundOn) toggleSound();
-      sfxWhoosh();
       overlay.classList.add('gone');
       setTimeout(() => overlay.remove(), 1100);
-      // Trigger hero letter animation after intro fades
-      setTimeout(triggerLetters, 400);
     };
     btn.addEventListener('click', e => { e.stopPropagation(); go(); });
   }
@@ -1610,7 +1621,7 @@ section {
     const els = document.querySelectorAll('.reveal, .reveal-up, .reveal-scale');
     const obs = new IntersectionObserver(entries => {
       entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add('in'); sfxPop(); }
+        if (e.isIntersecting) e.target.classList.add('in');
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
     els.forEach(el => obs.observe(el));
@@ -1644,31 +1655,198 @@ section {
     setInterval(update, 60000);
   }
 
-  // ============ BumBum triggers (only explicit) ============
-  function setupBumBum() {
-    document.addEventListener('click', e => {
-      if (e.target.closest('.bum-trigger')) {
-        showBumBum(e.clientX, e.clientY);
-      }
+  // ============ Achievement System ============
+  let achTimer = null;
+  function showAchievement(icon, title, desc) {
+    const el = document.getElementById('achievement');
+    if (!el) return;
+    document.getElementById('ach-icon').textContent = icon;
+    document.getElementById('ach-title').textContent = title;
+    document.getElementById('ach-desc').textContent = desc;
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+    clearTimeout(achTimer);
+    achTimer = setTimeout(() => el.classList.remove('show'), 3600);
+  }
+
+  // ============ Screen flash ============
+  function screenFlash(color = 'rgba(255,216,77,0.22)') {
+    const el = document.createElement('div');
+    el.className = 'screen-flash';
+    el.style.background = color;
+    document.body.appendChild(el);
+    el.animate(
+      [{ opacity: 1 }, { opacity: 0 }],
+      { duration: 700, easing: 'ease-out', fill: 'forwards' }
+    ).onfinish = () => el.remove();
+  }
+
+  // ============ Big confetti drop ============
+  function bigConfettiDrop() {
+    const colors = ['#1d4eff','#ffd84d','#ff6b35','#39d98a','#ff4d9e','#4d78ff'];
+    for (let i = 0; i < 70; i++) {
+      setTimeout(() => {
+        const p = document.createElement('div');
+        const size = 6 + Math.random() * 10;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        p.style.cssText = `
+          position:fixed; left:${Math.random()*100}%; top:-20px;
+          width:${size}px; height:${size}px; background:${color};
+          border-radius:${Math.random()>.5?'50%':'3px'};
+          pointer-events:none; z-index:8998;
+        `;
+        document.body.appendChild(p);
+        const tx = (Math.random() - 0.5) * 300;
+        p.animate([
+          { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+          { transform: `translateY(${window.innerHeight+60}px) translateX(${tx}px) rotate(${720*(Math.random()>.5?1:-1)}deg)`, opacity: 0 }
+        ], { duration: 2000 + Math.random()*1200, easing: 'ease-in', fill: 'forwards' }).onfinish = () => p.remove();
+      }, Math.random() * 500);
+    }
+  }
+
+  // ============ Hero sparkles ============
+  function setupHeroSparkles() {
+    const hero = document.querySelector('.hero-name');
+    if (!hero || !window.matchMedia('(pointer: fine)').matches) return;
+    let lastSpark = 0;
+    hero.addEventListener('mousemove', e => {
+      const now = performance.now();
+      if (now - lastSpark < 70) return;
+      lastSpark = now;
+      const sp = document.createElement('div');
+      const size = 3 + Math.random() * 7;
+      sp.className = 'sparkle';
+      sp.style.cssText = `left:${e.clientX}px;top:${e.clientY}px;width:${size}px;height:${size}px;`;
+      const colors = ['var(--yellow)','var(--blue-light)','#fff','var(--orange)'];
+      sp.style.background = colors[Math.floor(Math.random()*colors.length)];
+      document.body.appendChild(sp);
+      sp.animate([
+        { opacity: 1, transform: 'translate(-50%,-50%) scale(1)' },
+        { opacity: 0, transform: `translate(calc(-50% + ${(Math.random()-.5)*70}px),calc(-50% - ${20+Math.random()*50}px)) scale(0)` }
+      ], { duration: 600 + Math.random()*300, easing: 'ease-out', fill: 'forwards' }).onfinish = () => sp.remove();
     });
   }
 
-  // ============ Keyboard easter eggs ============
-  function setupKeyEggs() {
+  // ============ Easter Eggs ============
+  function setupEasterEggs() {
+    const found = new Set();
+    let eggCount = 0;
+    const TOTAL = 7;
+
+    function unlock(id, icon, title, desc, cb) {
+      if (found.has(id)) return;
+      found.add(id);
+      eggCount++;
+      showAchievement(icon, title, desc);
+      const counter = document.getElementById('egg-found');
+      if (counter) counter.textContent = eggCount;
+      if (eggCount >= TOTAL) {
+        const wrap = document.getElementById('egg-counter');
+        if (wrap) { wrap.classList.add('found-all'); wrap.title = 'Alle Easter Eggs gefunden!'; }
+        setTimeout(() => showAchievement('🏆', 'Alle gefunden!', 'Du hast alle 7 Easter Eggs entdeckt.'), 4000);
+      }
+      if (cb) cb();
+    }
+
+    // 1. Chat bubble click → Bum Bum (hidden easter egg)
+    document.addEventListener('click', e => {
+      if (e.target.closest('.bum-trigger')) {
+        showBumBum(e.clientX, e.clientY);
+        unlock('bumbum', '💬', 'Bum Bum', 'Das versteckte Easter Egg im Chat.', null);
+      }
+    });
+
+    // 2. Double-click hero name
+    const heroName = document.querySelector('.hero-name');
+    if (heroName) {
+      heroName.addEventListener('dblclick', () => {
+        unlock('philip', '🎂', 'Birthday Boy', 'Philip — höchstpersönlich.', () => {
+          screenFlash('rgba(29,78,255,0.2)');
+          bigConfettiDrop();
+          sfxBum();
+        });
+      });
+    }
+
+    // 3. Click the "13" in finale
+    const finaleNum = document.querySelector('[data-finale-num]');
+    if (finaleNum) {
+      finaleNum.addEventListener('click', () => {
+        unlock('thirteen', '🎉', 'Dreizehn', 'Die Zahl des Jahres.', () => {
+          screenFlash('rgba(255,216,77,0.25)');
+          bigConfettiDrop();
+          sfxBum();
+          let n = 1;
+          const tick = () => { finaleNum.textContent = n; if (n < 13) { n++; setTimeout(tick, 65); } };
+          tick();
+        });
+      });
+    }
+
+    // 4. Click the date pill
+    const datePill = document.querySelector('.hero-date-pill');
+    if (datePill) {
+      datePill.style.cursor = 'pointer';
+      datePill.addEventListener('click', () => {
+        unlock('date', '📅', '12. Mai', 'Heute ist dein Tag.', () => {
+          screenFlash('rgba(57,217,138,0.18)');
+          spawnConfettiBurst(window.innerWidth/2, window.innerHeight/2, 30, '#39d98a');
+          sfxBum();
+        });
+      });
+    }
+
+    // 5. Right-click anywhere
+    document.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      unlock('rightclick', '👀', 'Inspector', 'Neugierig? Gut so.', null);
+    });
+
+    // 6. Card sequence: ⚽ → 🎾 → 💬
+    let cardSeq = [];
+    document.querySelectorAll('.hobby-card').forEach((el, i) => {
+      el.addEventListener('click', () => {
+        cardSeq.push(i);
+        if (cardSeq.length > 3) cardSeq.shift();
+        if (cardSeq.join(',') === '0,1,2') {
+          unlock('sequence', '🏆', 'Sport Mode', 'Fußball → Tennis → Discord. In der richtigen Reihenfolge.', () => {
+            screenFlash('rgba(29,78,255,0.2)');
+            bigConfettiDrop();
+          });
+          cardSeq = [];
+        }
+      });
+    });
+
+    // 7. Keyboard: type "philip", "micksa", or Konami code
     const konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
     let buf = [];
     document.addEventListener('keydown', e => {
-      buf.push(e.key);
-      if (buf.length > 12) buf.shift();
+      buf.push(e.key); if (buf.length > 12) buf.shift();
 
+      // Konami
       if (buf.slice(-10).join(',').toLowerCase() === konami.join(',').toLowerCase()) {
-        for (let i = 0; i < 4; i++) setTimeout(() => showBumBum(), i * 200);
-        buf = [];
-        return;
+        unlock('konami', '🎮', 'Konami Veteran', '↑↑↓↓←→←→BA — ein Klassiker.', () => {
+          screenFlash('rgba(255,77,158,0.2)');
+          bigConfettiDrop();
+          sfxBum();
+        });
+        buf = []; return;
       }
-
-      if (buf.slice(-6).join('').toLowerCase() === 'philip') {
-        for (let i = 0; i < 3; i++) setTimeout(() => showBumBum(), i * 220);
+      // "philip"
+      const last6 = buf.slice(-6).join('').toLowerCase();
+      if (last6 === 'philip') {
+        showAchievement('👦', 'Hey Philip', 'Du tippst deinen eigenen Namen ein. Nice.');
+        for (let i = 0; i < 3; i++) setTimeout(() => showBumBum(), i * 200);
+        buf = []; return;
+      }
+      // "micksa"
+      if (last6 === 'micksa') {
+        unlock('micksa', '👋', 'Hey Micksa', 'Der Macher höchstpersönlich.', () => {
+          screenFlash('rgba(255,107,53,0.18)');
+        });
         buf = [];
       }
     });
@@ -1749,16 +1927,8 @@ section {
     els.forEach(el => obs.observe(el));
   }
 
-  // ============ Hover SFX ============
-  function setupHoverSFX() {
-    document.querySelectorAll('.hobby-card, .game-card').forEach((el, i) => {
-      el.addEventListener('mouseenter', () => sfxClick(400 + i * 40, 0.05, 0.04));
-    });
-  }
-
   // ============ Init ============
   document.addEventListener('DOMContentLoaded', () => {
-    setupSplitLetters();   // Must run before intro, sets up spans
     setupIntro();
     setupFloatingConfetti();
     setupCursor();
@@ -1770,14 +1940,10 @@ section {
     setupReveals();
     setupScrollProgress();
     setupCountdown();
-    setupBumBum();
-    setupKeyEggs();
-    setupHoverSFX();
+    setupEasterEggs();
+    setupHeroSparkles();
     setupFinaleNum();
 
-    // Sound toggle button
-    const btn = document.querySelector('.sound-toggle');
-    if (btn) btn.addEventListener('click', () => { toggleSound(); sfxClick(660); });
   });
 
 })();

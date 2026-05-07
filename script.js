@@ -6,118 +6,29 @@
 (function () {
   'use strict';
 
-  // ============ Audio ============
-  let audioCtx = null, masterGain = null, ambientNodes = null, soundOn = false;
+  // ============ Audio (nur Bum Bum) ============
+  let audioCtx = null;
 
   function initAudio() {
     if (audioCtx) return;
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
       audioCtx = new AC();
-      masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0;
-      masterGain.connect(audioCtx.destination);
     } catch (e) {}
   }
 
-  function startAmbient() {
-    if (!audioCtx || ambientNodes) return;
-    const now = audioCtx.currentTime;
-
-    const osc1 = audioCtx.createOscillator(); osc1.type = 'sine'; osc1.frequency.value = 55;
-    const osc2 = audioCtx.createOscillator(); osc2.type = 'sine'; osc2.frequency.value = 82.4;
-    const oscGain = audioCtx.createGain(); oscGain.gain.value = 0.12;
-
-    const lfo = audioCtx.createOscillator(); lfo.frequency.value = 0.08;
-    const lfoG = audioCtx.createGain(); lfoG.gain.value = 0.06;
-    lfo.connect(lfoG).connect(oscGain.gain);
-
-    const bufSize = 2 * audioCtx.sampleRate;
-    const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < bufSize; i++) d[i] = Math.random() * 2 - 1;
-    const noise = audioCtx.createBufferSource(); noise.buffer = buf; noise.loop = true;
-    const nf = audioCtx.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = 350;
-    const ng = audioCtx.createGain(); ng.gain.value = 0.025;
-    noise.connect(nf).connect(ng).connect(masterGain);
-
-    osc1.connect(oscGain); osc2.connect(oscGain); oscGain.connect(masterGain);
-    [osc1, osc2, lfo, noise].forEach(n => n.start(now));
-    ambientNodes = { osc1, osc2, lfo, noise };
-  }
-
-  function stopAmbient() {
-    if (!ambientNodes || !audioCtx) return;
-    const now = audioCtx.currentTime;
-    try { Object.values(ambientNodes).forEach(n => n.stop(now + 0.05)); } catch (e) {}
-    ambientNodes = null;
-  }
-
-  function sfxClick(freq = 440, dur = 0.08, vol = 0.1) {
-    if (!audioCtx || !soundOn) return;
-    const t = audioCtx.currentTime;
-    const o = audioCtx.createOscillator(); o.type = 'triangle'; o.frequency.value = freq;
-    const g = audioCtx.createGain(); g.gain.value = 0;
-    g.gain.linearRampToValueAtTime(vol, t + 0.005);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g).connect(masterGain); o.start(t); o.stop(t + dur + 0.02);
-  }
-
   function sfxBum() {
-    if (!audioCtx || !soundOn) return;
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
     const t = audioCtx.currentTime;
     const o = audioCtx.createOscillator(); o.type = 'sine';
     o.frequency.setValueAtTime(110, t);
     o.frequency.exponentialRampToValueAtTime(38, t + 0.35);
     const g = audioCtx.createGain(); g.gain.value = 0;
-    g.gain.linearRampToValueAtTime(0.38, t + 0.01);
+    g.gain.linearRampToValueAtTime(0.3, t + 0.01);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
-    o.connect(g).connect(masterGain); o.start(t); o.stop(t + 0.6);
-  }
-
-  function sfxWhoosh() {
-    if (!audioCtx || !soundOn) return;
-    const t = audioCtx.currentTime;
-    const size = audioCtx.sampleRate * 0.5;
-    const buf = audioCtx.createBuffer(1, size, audioCtx.sampleRate);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < size; i++) d[i] = Math.random() * 2 - 1;
-    const src = audioCtx.createBufferSource(); src.buffer = buf;
-    const filt = audioCtx.createBiquadFilter(); filt.type = 'bandpass'; filt.Q.value = 1.5;
-    filt.frequency.setValueAtTime(150, t);
-    filt.frequency.exponentialRampToValueAtTime(3500, t + 0.35);
-    const g = audioCtx.createGain(); g.gain.value = 0;
-    g.gain.linearRampToValueAtTime(0.18, t + 0.04);
-    g.gain.linearRampToValueAtTime(0, t + 0.45);
-    src.connect(filt).connect(g).connect(masterGain); src.start(t); src.stop(t + 0.5);
-  }
-
-  function sfxPop() {
-    if (!audioCtx || !soundOn) return;
-    const t = audioCtx.currentTime;
-    const o = audioCtx.createOscillator(); o.type = 'sine';
-    o.frequency.setValueAtTime(600, t);
-    o.frequency.exponentialRampToValueAtTime(200, t + 0.12);
-    const g = audioCtx.createGain(); g.gain.value = 0;
-    g.gain.linearRampToValueAtTime(0.2, t + 0.005);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
-    o.connect(g).connect(masterGain); o.start(t); o.stop(t + 0.18);
-  }
-
-  function toggleSound() {
-    initAudio();
-    if (!audioCtx) return;
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    soundOn = !soundOn;
-    const target = soundOn ? 0.45 : 0;
-    masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
-    masterGain.gain.setTargetAtTime(target, audioCtx.currentTime, 0.4);
-    const btn = document.querySelector('.sound-toggle');
-    if (btn) {
-      btn.classList.toggle('on', soundOn);
-      btn.querySelector('.label').textContent = soundOn ? 'SOUND ON' : 'SOUND OFF';
-    }
-    if (soundOn) startAmbient(); else setTimeout(stopAmbient, 700);
+    o.connect(g).connect(audioCtx.destination);
+    o.start(t); o.stop(t + 0.6);
   }
 
   // ============ BUM BUM ============
@@ -227,7 +138,7 @@
     }
     animateRing();
 
-    const interactives = 'button, a, .hobby-card, .game-card, .bum-trigger, .sound-toggle, .discord-bubble';
+    const interactives = 'button, a, .hobby-card, .game-card, .bum-trigger, .discord-bubble';
     document.querySelectorAll(interactives).forEach(el => {
       el.addEventListener('mouseenter', () => {
         dot.classList.add('hover');
@@ -322,35 +233,6 @@
     tick();
   }
 
-  // ============ Split letters (hero name) ============
-  function setupSplitLetters() {
-    document.querySelectorAll('[data-split-letters]').forEach(el => {
-      const text = el.textContent.trim();
-      el.innerHTML = '';
-      el.style.opacity = '1';
-
-      // Wrap in a gradient container
-      const wrap = document.createElement('span');
-      wrap.className = 'letter-wrap';
-
-      [...text].forEach((char, i) => {
-        const span = document.createElement('span');
-        span.className = 'letter';
-        span.textContent = char === ' ' ? ' ' : char;
-        span.style.transitionDelay = `${i * 0.07}s`;
-        wrap.appendChild(span);
-      });
-
-      el.appendChild(wrap);
-    });
-  }
-
-  function triggerLetters() {
-    document.querySelectorAll('.hero-name .letter').forEach(span => {
-      span.classList.add('in');
-    });
-  }
-
   // ============ Finale number count-up ============
   function setupFinaleNum() {
     const el = document.querySelector('[data-finale-num]');
@@ -381,13 +263,8 @@
     const btn = overlay.querySelector('.intro-btn');
     const go = () => {
       initAudio();
-      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-      if (!soundOn) toggleSound();
-      sfxWhoosh();
       overlay.classList.add('gone');
       setTimeout(() => overlay.remove(), 1100);
-      // Trigger hero letter animation after intro fades
-      setTimeout(triggerLetters, 400);
     };
     btn.addEventListener('click', e => { e.stopPropagation(); go(); });
   }
@@ -397,7 +274,7 @@
     const els = document.querySelectorAll('.reveal, .reveal-up, .reveal-scale');
     const obs = new IntersectionObserver(entries => {
       entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add('in'); sfxPop(); }
+        if (e.isIntersecting) e.target.classList.add('in');
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
     els.forEach(el => obs.observe(el));
@@ -431,31 +308,198 @@
     setInterval(update, 60000);
   }
 
-  // ============ BumBum triggers (only explicit) ============
-  function setupBumBum() {
-    document.addEventListener('click', e => {
-      if (e.target.closest('.bum-trigger')) {
-        showBumBum(e.clientX, e.clientY);
-      }
+  // ============ Achievement System ============
+  let achTimer = null;
+  function showAchievement(icon, title, desc) {
+    const el = document.getElementById('achievement');
+    if (!el) return;
+    document.getElementById('ach-icon').textContent = icon;
+    document.getElementById('ach-title').textContent = title;
+    document.getElementById('ach-desc').textContent = desc;
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+    clearTimeout(achTimer);
+    achTimer = setTimeout(() => el.classList.remove('show'), 3600);
+  }
+
+  // ============ Screen flash ============
+  function screenFlash(color = 'rgba(255,216,77,0.22)') {
+    const el = document.createElement('div');
+    el.className = 'screen-flash';
+    el.style.background = color;
+    document.body.appendChild(el);
+    el.animate(
+      [{ opacity: 1 }, { opacity: 0 }],
+      { duration: 700, easing: 'ease-out', fill: 'forwards' }
+    ).onfinish = () => el.remove();
+  }
+
+  // ============ Big confetti drop ============
+  function bigConfettiDrop() {
+    const colors = ['#1d4eff','#ffd84d','#ff6b35','#39d98a','#ff4d9e','#4d78ff'];
+    for (let i = 0; i < 70; i++) {
+      setTimeout(() => {
+        const p = document.createElement('div');
+        const size = 6 + Math.random() * 10;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        p.style.cssText = `
+          position:fixed; left:${Math.random()*100}%; top:-20px;
+          width:${size}px; height:${size}px; background:${color};
+          border-radius:${Math.random()>.5?'50%':'3px'};
+          pointer-events:none; z-index:8998;
+        `;
+        document.body.appendChild(p);
+        const tx = (Math.random() - 0.5) * 300;
+        p.animate([
+          { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+          { transform: `translateY(${window.innerHeight+60}px) translateX(${tx}px) rotate(${720*(Math.random()>.5?1:-1)}deg)`, opacity: 0 }
+        ], { duration: 2000 + Math.random()*1200, easing: 'ease-in', fill: 'forwards' }).onfinish = () => p.remove();
+      }, Math.random() * 500);
+    }
+  }
+
+  // ============ Hero sparkles ============
+  function setupHeroSparkles() {
+    const hero = document.querySelector('.hero-name');
+    if (!hero || !window.matchMedia('(pointer: fine)').matches) return;
+    let lastSpark = 0;
+    hero.addEventListener('mousemove', e => {
+      const now = performance.now();
+      if (now - lastSpark < 70) return;
+      lastSpark = now;
+      const sp = document.createElement('div');
+      const size = 3 + Math.random() * 7;
+      sp.className = 'sparkle';
+      sp.style.cssText = `left:${e.clientX}px;top:${e.clientY}px;width:${size}px;height:${size}px;`;
+      const colors = ['var(--yellow)','var(--blue-light)','#fff','var(--orange)'];
+      sp.style.background = colors[Math.floor(Math.random()*colors.length)];
+      document.body.appendChild(sp);
+      sp.animate([
+        { opacity: 1, transform: 'translate(-50%,-50%) scale(1)' },
+        { opacity: 0, transform: `translate(calc(-50% + ${(Math.random()-.5)*70}px),calc(-50% - ${20+Math.random()*50}px)) scale(0)` }
+      ], { duration: 600 + Math.random()*300, easing: 'ease-out', fill: 'forwards' }).onfinish = () => sp.remove();
     });
   }
 
-  // ============ Keyboard easter eggs ============
-  function setupKeyEggs() {
+  // ============ Easter Eggs ============
+  function setupEasterEggs() {
+    const found = new Set();
+    let eggCount = 0;
+    const TOTAL = 7;
+
+    function unlock(id, icon, title, desc, cb) {
+      if (found.has(id)) return;
+      found.add(id);
+      eggCount++;
+      showAchievement(icon, title, desc);
+      const counter = document.getElementById('egg-found');
+      if (counter) counter.textContent = eggCount;
+      if (eggCount >= TOTAL) {
+        const wrap = document.getElementById('egg-counter');
+        if (wrap) { wrap.classList.add('found-all'); wrap.title = 'Alle Easter Eggs gefunden!'; }
+        setTimeout(() => showAchievement('🏆', 'Alle gefunden!', 'Du hast alle 7 Easter Eggs entdeckt.'), 4000);
+      }
+      if (cb) cb();
+    }
+
+    // 1. Chat bubble click → Bum Bum (hidden easter egg)
+    document.addEventListener('click', e => {
+      if (e.target.closest('.bum-trigger')) {
+        showBumBum(e.clientX, e.clientY);
+        unlock('bumbum', '💬', 'Bum Bum', 'Das versteckte Easter Egg im Chat.', null);
+      }
+    });
+
+    // 2. Double-click hero name
+    const heroName = document.querySelector('.hero-name');
+    if (heroName) {
+      heroName.addEventListener('dblclick', () => {
+        unlock('philip', '🎂', 'Birthday Boy', 'Philip — höchstpersönlich.', () => {
+          screenFlash('rgba(29,78,255,0.2)');
+          bigConfettiDrop();
+          sfxBum();
+        });
+      });
+    }
+
+    // 3. Click the "13" in finale
+    const finaleNum = document.querySelector('[data-finale-num]');
+    if (finaleNum) {
+      finaleNum.addEventListener('click', () => {
+        unlock('thirteen', '🎉', 'Dreizehn', 'Die Zahl des Jahres.', () => {
+          screenFlash('rgba(255,216,77,0.25)');
+          bigConfettiDrop();
+          sfxBum();
+          let n = 1;
+          const tick = () => { finaleNum.textContent = n; if (n < 13) { n++; setTimeout(tick, 65); } };
+          tick();
+        });
+      });
+    }
+
+    // 4. Click the date pill
+    const datePill = document.querySelector('.hero-date-pill');
+    if (datePill) {
+      datePill.style.cursor = 'pointer';
+      datePill.addEventListener('click', () => {
+        unlock('date', '📅', '12. Mai', 'Heute ist dein Tag.', () => {
+          screenFlash('rgba(57,217,138,0.18)');
+          spawnConfettiBurst(window.innerWidth/2, window.innerHeight/2, 30, '#39d98a');
+          sfxBum();
+        });
+      });
+    }
+
+    // 5. Right-click anywhere
+    document.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      unlock('rightclick', '👀', 'Inspector', 'Neugierig? Gut so.', null);
+    });
+
+    // 6. Card sequence: ⚽ → 🎾 → 💬
+    let cardSeq = [];
+    document.querySelectorAll('.hobby-card').forEach((el, i) => {
+      el.addEventListener('click', () => {
+        cardSeq.push(i);
+        if (cardSeq.length > 3) cardSeq.shift();
+        if (cardSeq.join(',') === '0,1,2') {
+          unlock('sequence', '🏆', 'Sport Mode', 'Fußball → Tennis → Discord. In der richtigen Reihenfolge.', () => {
+            screenFlash('rgba(29,78,255,0.2)');
+            bigConfettiDrop();
+          });
+          cardSeq = [];
+        }
+      });
+    });
+
+    // 7. Keyboard: type "philip", "micksa", or Konami code
     const konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
     let buf = [];
     document.addEventListener('keydown', e => {
-      buf.push(e.key);
-      if (buf.length > 12) buf.shift();
+      buf.push(e.key); if (buf.length > 12) buf.shift();
 
+      // Konami
       if (buf.slice(-10).join(',').toLowerCase() === konami.join(',').toLowerCase()) {
-        for (let i = 0; i < 4; i++) setTimeout(() => showBumBum(), i * 200);
-        buf = [];
-        return;
+        unlock('konami', '🎮', 'Konami Veteran', '↑↑↓↓←→←→BA — ein Klassiker.', () => {
+          screenFlash('rgba(255,77,158,0.2)');
+          bigConfettiDrop();
+          sfxBum();
+        });
+        buf = []; return;
       }
-
-      if (buf.slice(-6).join('').toLowerCase() === 'philip') {
-        for (let i = 0; i < 3; i++) setTimeout(() => showBumBum(), i * 220);
+      // "philip"
+      const last6 = buf.slice(-6).join('').toLowerCase();
+      if (last6 === 'philip') {
+        showAchievement('👦', 'Hey Philip', 'Du tippst deinen eigenen Namen ein. Nice.');
+        for (let i = 0; i < 3; i++) setTimeout(() => showBumBum(), i * 200);
+        buf = []; return;
+      }
+      // "micksa"
+      if (last6 === 'micksa') {
+        unlock('micksa', '👋', 'Hey Micksa', 'Der Macher höchstpersönlich.', () => {
+          screenFlash('rgba(255,107,53,0.18)');
+        });
         buf = [];
       }
     });
@@ -536,16 +580,8 @@
     els.forEach(el => obs.observe(el));
   }
 
-  // ============ Hover SFX ============
-  function setupHoverSFX() {
-    document.querySelectorAll('.hobby-card, .game-card').forEach((el, i) => {
-      el.addEventListener('mouseenter', () => sfxClick(400 + i * 40, 0.05, 0.04));
-    });
-  }
-
   // ============ Init ============
   document.addEventListener('DOMContentLoaded', () => {
-    setupSplitLetters();   // Must run before intro, sets up spans
     setupIntro();
     setupFloatingConfetti();
     setupCursor();
@@ -557,14 +593,10 @@
     setupReveals();
     setupScrollProgress();
     setupCountdown();
-    setupBumBum();
-    setupKeyEggs();
-    setupHoverSFX();
+    setupEasterEggs();
+    setupHeroSparkles();
     setupFinaleNum();
 
-    // Sound toggle button
-    const btn = document.querySelector('.sound-toggle');
-    if (btn) btn.addEventListener('click', () => { toggleSound(); sfxClick(660); });
   });
 
 })();

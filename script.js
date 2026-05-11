@@ -284,9 +284,6 @@
     const card = document.getElementById('player-card');
     if (!card) return;
     const stage = card.parentElement;
-    const holo = card.querySelector('.card-holo');
-    const shine = card.querySelector('.card-shine');
-
     let targetRX = 0, targetRY = 0;
     let curRX = 0, curRY = 0;
     let bgX = 50, bgY = 50;
@@ -305,19 +302,14 @@
       const ly = ((e.clientY - r.top) / r.height) * 100;
       bgX = lx;
       bgY = ly;
-      if (shine) {
-        shine.style.background = `radial-gradient(circle at ${lx}% ${ly}%, rgba(255,255,255,0.35), transparent 50%)`;
-        shine.style.opacity = '1';
-      }
-      if (holo) {
-        holo.style.backgroundPosition = `${lx}% ${ly}%`;
-      }
+      // Drive holo + shine via CSS custom properties
+      card.style.setProperty('--mx', lx + '%');
+      card.style.setProperty('--my', ly + '%');
     }
 
     function reset() {
       targetRX = 0;
       targetRY = 0;
-      if (shine) shine.style.opacity = '0';
     }
 
     // Hover behavior

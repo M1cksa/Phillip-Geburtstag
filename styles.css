@@ -470,14 +470,32 @@ section {
   padding: 4rem 0;
 }
 
+@property --mx {
+  syntax: '<percentage>';
+  initial-value: 50%;
+  inherits: true;
+}
+@property --my {
+  syntax: '<percentage>';
+  initial-value: 50%;
+  inherits: true;
+}
+@property --rotation {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: true;
+}
+
 .player-card {
+  --mx: 50%;
+  --my: 50%;
   width: 340px;
   height: 520px;
   border-radius: 24px;
   position: relative;
   transform-style: preserve-3d;
   will-change: transform;
-  transition: transform 0.4s cubic-bezier(0.2,0.7,0.2,1);
+  transition: transform 0.4s cubic-bezier(0.2,0.7,0.2,1), box-shadow 0.5s;
   background:
     linear-gradient(135deg,
       #1a0e3a 0%,
@@ -494,37 +512,105 @@ section {
   cursor: grab;
 }
 .player-card:active { cursor: grabbing; }
+.player-card:hover {
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.25),
+    0 40px 120px rgba(200, 80, 192, 0.4),
+    0 0 80px rgba(0, 180, 255, 0.25),
+    inset 0 0 60px rgba(255,255,255,0.05);
+}
 
+/* TCG Holographic oil-slick — tracks mouse */
 .card-holo {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(135deg,
-      transparent 0%,
-      rgba(255,0,255,0.15) 25%,
-      rgba(0,255,255,0.15) 50%,
-      rgba(255,255,0,0.15) 75%,
-      transparent 100%);
-  background-size: 300% 300%;
+    conic-gradient(
+      from var(--rotation, 0deg) at var(--mx) var(--my),
+      #ff006e 0deg,
+      #ff7a00 50deg,
+      #ffd60a 110deg,
+      #06ffa5 170deg,
+      #00b4ff 230deg,
+      #c850c0 290deg,
+      #ff006e 360deg
+    );
   mix-blend-mode: color-dodge;
   pointer-events: none;
-  opacity: 0.5;
+  opacity: 0.4;
+  filter: saturate(1.5) blur(2px);
+  transition: opacity 0.4s;
+  animation: holoSpin 22s linear infinite;
 }
+.player-card:hover .card-holo {
+  opacity: 0.55;
+}
+@keyframes holoSpin {
+  to { --rotation: 360deg; }
+}
+
+/* Sparkle stars overlay — twinkles slowly */
+.card-sparkle {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='90'><g fill='white'><circle cx='12' cy='18' r='0.7'/><circle cx='38' cy='42' r='0.5'/><circle cx='62' cy='24' r='0.8'/><circle cx='72' cy='62' r='0.6'/><circle cx='22' cy='68' r='0.5'/><circle cx='50' cy='76' r='0.7'/><circle cx='18' cy='48' r='0.4'/><circle cx='68' cy='10' r='0.6'/><circle cx='44' cy='8' r='0.5'/><circle cx='86' cy='42' r='0.5'/><circle cx='4' cy='32' r='0.4'/></g></svg>");
+  background-size: 90px 90px;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  opacity: 0.55;
+  animation: sparkleDrift 16s linear infinite, sparkleTwinkle 3.2s ease-in-out infinite;
+}
+@keyframes sparkleDrift {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+@keyframes sparkleTwinkle {
+  0%, 100% { opacity: 0.35; filter: brightness(1); }
+  50%      { opacity: 0.75; filter: brightness(1.6); }
+}
+
+/* Mouse-tracked shine */
 .card-shine {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.25) 0%, transparent 50%);
+  background: radial-gradient(
+    circle 280px at var(--mx) var(--my),
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.15) 18%,
+    transparent 50%
+  );
+  mix-blend-mode: overlay;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s;
 }
 .player-card:hover .card-shine { opacity: 1; }
+
 .card-noise {
   position: absolute;
   inset: 0;
   background-image:
     repeating-linear-gradient(45deg, transparent 0, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
   pointer-events: none;
+}
+
+/* Tiny Pokéball stamp — TCG set-symbol style */
+.card-mark {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  width: 22px;
+  height: 22px;
+  z-index: 5;
+  opacity: 0.55;
+  filter: drop-shadow(0 0 6px rgba(255, 60, 60, 0.4));
+  transition: opacity 0.3s, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  pointer-events: none;
+}
+.player-card:hover .card-mark {
+  opacity: 1;
+  transform: rotate(360deg);
+  filter: drop-shadow(0 0 12px rgba(255, 80, 80, 0.7));
 }
 .card-inner {
   position: relative;

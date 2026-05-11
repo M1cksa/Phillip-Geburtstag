@@ -3,270 +3,243 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Happy Birthday Philip 🎉</title>
-<meta name="description" content="Alles Gute zum 13. Geburtstag, Philip!">
+<title>PHILIP / 13</title>
+<meta name="description" content="12.05.2026 — Philip wird 13.">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<!-- Animated background orbs -->
-<div class="bg-orbs" aria-hidden="true">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-  <div class="orb orb-4"></div>
+<!-- Canvas particle field -->
+<canvas id="particle-canvas" aria-hidden="true"></canvas>
+
+<!-- Audio toggle -->
+<button class="audio-toggle" id="audio-toggle" aria-label="Audio">
+  <span class="audio-bars">
+    <span></span><span></span><span></span><span></span>
+  </span>
+  <span class="audio-label">AUDIO OFF</span>
+</button>
+
+<!-- Scroll progress -->
+<div class="scroll-rail">
+  <div class="scroll-fill"></div>
+  <span class="scroll-coord" id="scroll-coord">000</span>
 </div>
 
-<!-- Cursor trail container -->
-<div class="cursor-trail" aria-hidden="true"></div>
-
-<!-- Scroll progress bar -->
-<div class="scroll-progress"><div class="fill"></div></div>
-
-<!-- Custom cursor (mouse devices only) -->
-<div class="cursor-dot"></div>
-<div class="cursor-ring"></div>
-
-<!-- Easter egg counter -->
-<div class="egg-counter" id="egg-counter" title="Easter Eggs">
-  <span id="egg-found">0</span>/9 🔍
+<!-- Corner data readouts (broadcast HUD) -->
+<div class="hud hud-tl">
+  <div class="hud-line">REC ●</div>
+  <div class="hud-line" id="hud-time">--:--:--</div>
+</div>
+<div class="hud hud-tr">
+  <div class="hud-line">SIGNAL · STRONG</div>
+  <div class="hud-line">CH / PHILIP</div>
+</div>
+<div class="hud hud-bl">
+  <div class="hud-line" id="hud-coords">52.5200° N · 13.4050° E</div>
+</div>
+<div class="hud hud-br">
+  <div class="hud-line">12.05.2026</div>
 </div>
 
-<!-- Hidden Pokéball (Micksa's signature easter egg) -->
-<div class="pokeball-egg" id="pokeball-egg" title="?">
-  <div class="pokeball">
-    <div class="pokeball-top"></div>
-    <div class="pokeball-bottom"></div>
-    <div class="pokeball-band"></div>
-    <div class="pokeball-button"></div>
+<!-- ===== INTRO ===== -->
+<div id="intro">
+  <div class="intro-grid"></div>
+  <div class="intro-content">
+    <div class="intro-counter">
+      <span class="intro-counter-label">LOADING</span>
+      <span class="intro-counter-num" id="intro-count">000</span>
+    </div>
+    <div class="intro-bar"><div class="intro-bar-fill"></div></div>
+    <div class="intro-meta">
+      <span>CH / PHILIP_13</span>
+      <span>12.05.2026</span>
+    </div>
+    <button class="intro-start" id="intro-start">
+      <span class="intro-start-text">[ ENTER ]</span>
+    </button>
   </div>
-</div>
-
-<!-- Achievement toast -->
-<div id="achievement" aria-live="polite">
-  <div class="ach-icon" id="ach-icon">🏆</div>
-  <div class="ach-body">
-    <div class="ach-label">Achievement Unlocked</div>
-    <div class="ach-title" id="ach-title">—</div>
-    <div class="ach-desc" id="ach-desc">—</div>
-  </div>
-  <div class="ach-progress" id="ach-progress"></div>
-</div>
-
-<!-- ===== INTRO OVERLAY ===== -->
-<div id="intro-overlay">
-  <div class="intro-label">12 · 05 · 2026</div>
-  <div class="intro-heading">Happy Birthday,<br><em>Philip!</em></div>
-  <button class="intro-btn" data-magnetic>Los geht's 🎉</button>
 </div>
 
 <!-- ===== HERO ===== -->
-<section id="hero" data-parallax-scene>
-  <div class="hero-bg-glow"></div>
-  <div class="hero-eyebrow reveal">Happy 13th Birthday</div>
-  <h1 class="hero-name">Philip</h1>
-  <p class="hero-subline reveal delay-3">Heute. Nur um <em>dich.</em></p>
-  <div class="hero-date-pill reveal delay-4" data-magnetic>
-    <span class="dot"></span>
-    <span id="days-left">12.05.2026</span>
+<section id="hero">
+  <div class="hero-ticker">
+    <span>NOW PLAYING</span>
+    <span class="dot-live"></span>
+    <span>BIRTHDAY MODE</span>
+    <span>·</span>
+    <span id="hero-countdown">--</span>
   </div>
-  <div class="hero-scroll-cue">
-    <span>scroll</span>
-    <div class="cue-line"></div>
+  <h1 class="hero-name" data-glitch="PHILIP">PHILIP</h1>
+  <div class="hero-sub">
+    <span class="hero-num">13</span>
+    <span class="hero-divider"></span>
+    <span class="hero-tag">Heute. Echt jetzt.</span>
   </div>
 </section>
 
-<!-- ===== YAMAL TRIBUTE ===== -->
-<section id="yamal">
-  <div class="yamal-bg-stripe"></div>
-  <div class="yamal-content">
-    <div class="section-label reveal" data-scramble>Sein Idol · GOAT in the making</div>
-    <h2 class="yamal-heading reveal delay-1">
-      Lamine.<br><em>Yamal.</em>
-    </h2>
-    <div class="yamal-grid">
-      <div class="yamal-jersey reveal delay-2" data-tilt>
-        <div class="jersey-shine"></div>
-        <div class="jersey-club">FCB</div>
-        <div class="jersey-number">10</div>
-        <div class="jersey-name">YAMAL</div>
-        <div class="jersey-stripes">
-          <span></span><span></span><span></span>
+<!-- ===== PLAYER CARD ===== -->
+<section id="card-section">
+  <div class="section-label">CARD · 001 / PHILIP</div>
+  <h2 class="section-h">
+    Die <em>Karte.</em>
+  </h2>
+  <p class="section-p">Hover. Move. Tilt. — wie auf FC, aber das bist du.</p>
+
+  <div class="card-stage">
+    <div class="player-card" id="player-card">
+      <div class="card-holo"></div>
+      <div class="card-shine"></div>
+      <div class="card-noise"></div>
+      <div class="card-inner">
+        <div class="card-top">
+          <div class="card-rating">99</div>
+          <div class="card-position">MID</div>
+          <div class="card-flag">DE</div>
         </div>
-      </div>
-      <div class="yamal-stats reveal delay-3">
-        <div class="stat-row">
-          <span class="stat-label">Verein</span>
-          <span class="stat-value">FC Barcelona</span>
+        <div class="card-portrait">
+          <div class="card-portrait-glow"></div>
+          <div class="card-initial">P</div>
         </div>
-        <div class="stat-row">
-          <span class="stat-label">Position</span>
-          <span class="stat-value">Right Wing</span>
+        <div class="card-divider"></div>
+        <div class="card-name">PHILIP</div>
+        <div class="card-stats">
+          <div><span>PAC</span><b>92</b></div>
+          <div><span>SHO</span><b>88</b></div>
+          <div><span>PAS</span><b>91</b></div>
+          <div><span>DRI</span><b>95</b></div>
+          <div><span>DEF</span><b>76</b></div>
+          <div><span>PHY</span><b>85</b></div>
         </div>
-        <div class="stat-row">
-          <span class="stat-label">Land</span>
-          <span class="stat-value">España 🇪🇸</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Schule</span>
-          <span class="stat-value">La Masia</span>
-        </div>
-        <div class="stat-row highlight">
-          <span class="stat-label">Trikot bei Philip</span>
-          <span class="stat-value">10 · für immer</span>
+        <div class="card-meta">
+          <span>BORN · 12.05.2013</span>
+          <span>CLUB · FCB</span>
         </div>
       </div>
     </div>
-    <p class="yamal-quote reveal delay-4">
-      <em>"Wenn er den Ball hat,<br>
-      hörst du auf zu zappen."</em>
+  </div>
+</section>
+
+<!-- ===== YAMAL ===== -->
+<section id="yamal">
+  <div class="yamal-stripe"></div>
+  <div class="yamal-content">
+    <div class="section-label">SUBJECT · IDOL</div>
+    <h2 class="yamal-massive" data-split>LAMINE YAMAL</h2>
+    <div class="yamal-meta">
+      <div class="yamal-meta-block">
+        <span class="meta-key">NO.</span>
+        <span class="meta-val">10</span>
+      </div>
+      <div class="yamal-meta-block">
+        <span class="meta-key">CLUB</span>
+        <span class="meta-val">FC BARCELONA</span>
+      </div>
+      <div class="yamal-meta-block">
+        <span class="meta-key">SCHOOL</span>
+        <span class="meta-val">LA MASIA</span>
+      </div>
+    </div>
+    <p class="yamal-quote">
+      <em>"Du brauchst nur</em><br>
+      einen Ball und<br>
+      <em>einen Traum."</em>
     </p>
   </div>
 </section>
 
-<!-- ===== HOBBIES ===== -->
-<section id="hobbies">
-  <div class="section-label reveal" data-scramble>Sport · Games · Chill</div>
-  <h2 class="hobbies-heading reveal delay-1">
-    Sport. Games.<br><em>Alles dabei.</em>
-  </h2>
-  <div class="hobbies-grid">
-    <div class="hobby-card blue reveal" data-tilt>
-      <div class="accent-blob"></div>
-      <span class="card-icon">⚽</span>
-      <div class="card-title">Fußball</div>
-      <div class="card-sub">Lieblingssport · Immer am Ball</div>
-      <div class="card-shine"></div>
+<!-- ===== STATS ===== -->
+<section id="stats">
+  <div class="section-label">BY THE NUMBERS</div>
+  <h2 class="section-h">13 Jahre.<br><em>In Daten.</em></h2>
+  <div class="stats-grid">
+    <div class="stat-big">
+      <div class="stat-big-num" data-count-to="4748">0</div>
+      <div class="stat-big-label">Tage gelebt</div>
     </div>
-    <div class="hobby-card yellow reveal delay-1" data-tilt>
-      <div class="accent-blob"></div>
-      <span class="card-icon">🎾</span>
-      <div class="card-title">Tennis</div>
-      <div class="card-sub">Backhand · Hard hits</div>
-      <div class="card-shine"></div>
+    <div class="stat-big">
+      <div class="stat-big-num" data-count-to="113952">0</div>
+      <div class="stat-big-label">Stunden auf der Welt</div>
     </div>
-    <div class="hobby-card green reveal delay-2" data-tilt>
-      <div class="accent-blob"></div>
-      <span class="card-icon">💬</span>
-      <div class="card-title">Discord</div>
-      <div class="card-sub">Voice on · 24/7</div>
-      <div class="card-shine"></div>
+    <div class="stat-big">
+      <div class="stat-big-num" data-count-to="13">0</div>
+      <div class="stat-big-label">Jahre Vorsprung auf den Rest</div>
     </div>
   </div>
 </section>
 
-<!-- Marquee -->
-<div class="marquee-wrap">
-  <div class="marquee-track">
-    <span>Happy Birthday <span class="dot"></span> Philip <span class="dot"></span> 13 Jahre <span class="dot"></span> 12.05.2026 <span class="dot"></span> Dream Big <span class="dot"></span> </span>
-    <span>Happy Birthday <span class="dot"></span> Philip <span class="dot"></span> 13 Jahre <span class="dot"></span> 12.05.2026 <span class="dot"></span> Dream Big <span class="dot"></span> </span>
-  </div>
-</div>
-
-<!-- ===== GAMES ===== -->
+<!-- ===== OPS / GAMES ===== -->
 <section id="games">
-  <div class="section-label reveal" data-scramble>Currently Playing</div>
-  <h2 class="hobbies-heading reveal delay-1">
-    Drei Games.<br><em>Ein Pro.</em>
-  </h2>
-  <div class="games-row">
-    <div class="game-card reveal" data-tilt>
-      <div class="glow-bg"></div>
-      <div class="num">01 / FC 26</div>
-      <div class="g-icon">⚽</div>
-      <div class="g-name">FC 26</div>
-      <div class="g-tag">Ultimate Team</div>
-      <div class="card-shine"></div>
+  <div class="section-label">CURRENT OPS</div>
+  <h2 class="section-h">Drei Games.<br><em>Eine Mission.</em></h2>
+  <div class="games-grid">
+    <div class="game-tile" data-tilt>
+      <div class="game-num">01</div>
+      <div class="game-title">FORTNITE</div>
+      <div class="game-tag">SQUAD · W's ONLY</div>
+      <div class="game-bar"><span style="width:92%"></span></div>
     </div>
-    <div class="game-card reveal delay-2 bum-trigger" data-tilt style="cursor:pointer" title="🎯">
-      <div class="glow-bg"></div>
-      <div class="num">02 / FORTNITE</div>
-      <div class="g-icon">🎯</div>
-      <div class="g-name">Fortnite</div>
-      <div class="g-tag">Squad · W's only</div>
-      <div class="card-shine"></div>
+    <div class="game-tile" data-tilt>
+      <div class="game-num">02</div>
+      <div class="game-title">FC 26</div>
+      <div class="game-tag">ULTIMATE TEAM</div>
+      <div class="game-bar"><span style="width:88%"></span></div>
     </div>
-    <div class="game-card reveal delay-4" data-tilt>
-      <div class="glow-bg"></div>
-      <div class="num">03 / MINECRAFT</div>
-      <div class="g-icon">⛏️</div>
-      <div class="g-name">Minecraft</div>
-      <div class="g-tag">Survival · Builder</div>
-      <div class="card-shine"></div>
+    <div class="game-tile" data-tilt>
+      <div class="game-num">03</div>
+      <div class="game-title">MINECRAFT</div>
+      <div class="game-tag">SURVIVAL · BUILDER</div>
+      <div class="game-bar"><span style="width:74%"></span></div>
     </div>
   </div>
 </section>
 
-<!-- ===== CHAT ===== -->
-<section id="discord">
-  <div class="section-label reveal" data-scramble>Jeden Tag</div>
-  <h2 class="hobbies-heading reveal delay-1">
-    Immer irgendwo<br><em>online.</em>
-  </h2>
-  <div class="discord-chat reveal delay-2">
-    <div class="discord-bubble">
-      <div class="user">Philip · heute</div>
-      bro wann zockst du heute? Fortnite?
+<!-- ===== TRANSMISSION (Letter) ===== -->
+<section id="transmission">
+  <div class="section-label">INCOMING · FROM MICKSA</div>
+  <div class="terminal">
+    <div class="terminal-bar">
+      <span class="t-dot red"></span>
+      <span class="t-dot yellow"></span>
+      <span class="t-dot green"></span>
+      <span class="terminal-title">transmission.txt</span>
     </div>
-    <div class="discord-bubble right">
-      <div class="user">Micksa · heute</div>
-      nach 6 — Squad oder Solo?
-    </div>
-    <div class="discord-bubble">
-      <div class="user">Philip · heute</div>
-      Squad natürlich. ich bau dich aus 💀
-    </div>
-    <div class="discord-bubble right bum-trigger" style="cursor:pointer" title="🤔">
-      <div class="user">Micksa · heute</div>
-      lol okay. W's only 🎮
-    </div>
-  </div>
-</section>
-
-<!-- ===== BRIEF ===== -->
-<section id="brief">
-  <div class="brief-card reveal">
-    <div class="brief-header">
-      <span>Brief · 001</span>
-      <span>Von: Micksa → Philip</span>
-    </div>
-    <div class="brief-text">
-      <p>Philip,</p>
-      <p>du wirst 13 — und gefühlt war's gestern noch, als wir das erste Mal zusammen Fortnite gezockt haben.</p>
-      <p>Du bist einer der besten Typen die ich kenne. Auf dem Platz, im Voice-Chat und einfach so. Auch wenn du auf Fortnite zu oft die meisten Kills hast, was ich hiermit offiziell bestreite. 🙄</p>
-      <p>Genieß deinen Tag, Bro. Du hast ihn verdient.<em> Alles Gute.</em><span class="brief-cursor"></span></p>
-    </div>
-    <div class="brief-signature">
-      <span class="from">Signed · 12.05.2026</span>
-      <span class="name">Micksa</span>
-    </div>
-    <div class="brief-ps">
-      <span class="ps-label">P.S.</span>
-      Ich hab seit 1999 Pokémon gesammelt — und du seit Jahren meine besten Spielmomente. Beides bleibt. <span class="poke-mini" title="?">⚪</span>
+    <div class="terminal-body">
+      <div class="terminal-line"><span class="t-prompt">$</span> open letter.txt</div>
+      <div class="terminal-line" data-typeline>yo philip,</div>
+      <div class="terminal-line" data-typeline></div>
+      <div class="terminal-line" data-typeline>du wirst 13. wild.</div>
+      <div class="terminal-line" data-typeline>fühlt sich an wie gestern, dass wir das erste mal zusammen reingegangen sind.</div>
+      <div class="terminal-line" data-typeline></div>
+      <div class="terminal-line" data-typeline>halt's wie yamal — kopf runter, weiter ballern.</div>
+      <div class="terminal-line" data-typeline>der rest kommt von allein.</div>
+      <div class="terminal-line" data-typeline></div>
+      <div class="terminal-line" data-typeline>happy birthday, bro.</div>
+      <div class="terminal-line" data-typeline>— micksa</div>
+      <div class="terminal-line"><span class="t-prompt">$</span> <span class="t-cursor">_</span></div>
     </div>
   </div>
 </section>
 
 <!-- ===== FINALE ===== -->
 <section id="finale">
-  <div class="finale-orb"></div>
-  <div class="finale-pre reveal">— Für Philip —</div>
-  <h2 class="finale-hb reveal delay-1 bum-trigger" style="cursor:pointer" title="🎉">
-    Happy<br><em>Birthday</em>
-  </h2>
-  <div class="finale-num" data-finale-num>13</div>
-  <p class="finale-sub reveal delay-3">Mach's gut. Genieß den Tag. <em>Dream big.</em></p>
+  <div class="finale-bg"></div>
+  <div class="section-label">END · TRANSMISSION</div>
+  <div class="finale-stack">
+    <h2 class="finale-hb">HAPPY<br>BIRTHDAY</h2>
+    <div class="finale-num" data-finale-num>13</div>
+    <div class="finale-sig">PHILIP · 12.05.2026</div>
+  </div>
 </section>
 
 <!-- ===== FOOTER ===== -->
-<section id="footer">
-  <div class="footer-text reveal">
-    Mit viel Liebe gebaut von <em>Micksa</em> · 2026
+<footer id="footer">
+  <div class="footer-row">
+    <span>BUILT FOR PHILIP</span>
+    <span>BY MICKSA</span>
+    <span>v1.3 / 2026</span>
   </div>
-  <div class="footer-text reveal delay-1" style="opacity:0.5; font-size:9px;">
-    PSST · tippe „philip", „yamal" oder „pikachu" für Überraschungen
-  </div>
-</section>
+</footer>
 
 <script src="script.js"></script>
 </body>

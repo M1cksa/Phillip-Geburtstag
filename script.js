@@ -1,701 +1,524 @@
 /* ============================================
-   PHILIP — HAPPY BIRTHDAY
-   Interactions, sound, easter eggs
+   PHILIP / 13 — interactions
    ============================================ */
-
 (function () {
   'use strict';
 
-  // ============ Audio (nur Bum Bum) ============
-  let audioCtx = null;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isMobile = !window.matchMedia('(pointer: fine)').matches;
 
-  function initAudio() {
-    if (audioCtx) return;
-    try {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AC();
-    } catch (e) {}
-  }
+  /* ============================================
+     PARTICLE FIELD (canvas)
+     ============================================ */
+  function initParticles() {
+    const canvas = document.getElementById('particle-canvas');
+    if (!canvas) return null;
+    const ctx = canvas.getContext('2d');
+    let DPR = Math.min(window.devicePixelRatio || 1, 2);
+    let W = 0, H = 0;
+    let particles = [];
+    const mouse = { x: -9999, y: -9999, active: false };
+    let audioLevel = 0;
 
-  function sfxBum() {
-    if (!audioCtx) return;
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const t = audioCtx.currentTime;
-    const o = audioCtx.createOscillator(); o.type = 'sine';
-    o.frequency.setValueAtTime(110, t);
-    o.frequency.exponentialRampToValueAtTime(38, t + 0.35);
-    const g = audioCtx.createGain(); g.gain.value = 0;
-    g.gain.linearRampToValueAtTime(0.3, t + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
-    o.connect(g).connect(audioCtx.destination);
-    o.start(t); o.stop(t + 0.6);
-  }
-
-  // ============ BUM BUM ============
-  let bumbumCount = 0;
-  let bumbumCooldown = false;
-  const COLORS = ['#1d4eff', '#ffd84d', '#ff6b35', '#39d98a', '#ff4d9e', '#4d78ff'];
-
-  function showBumBum(x, y) {
-    if (bumbumCooldown) return;
-    bumbumCooldown = true;
-    setTimeout(() => bumbumCooldown = false, 1100);
-
-    const el = document.createElement('div');
-    el.className = 'bumbum-pop';
-    const color = COLORS[Math.floor(Math.random() * COLORS.length)];
-    el.style.color = color;
-    el.style.textShadow = `0 0 40px ${color}88`;
-    el.textContent = 'Bum Bum';
-    const cx = x !== undefined ? x : window.innerWidth * (0.2 + Math.random() * 0.6);
-    const cy = y !== undefined ? y : window.innerHeight * (0.2 + Math.random() * 0.6);
-    el.style.left = cx + 'px';
-    el.style.top = cy + 'px';
-    document.body.appendChild(el);
-    sfxBum();
-
-    bumbumCount++;
-    const badge = document.getElementById('bumbum-count');
-    if (badge) badge.textContent = String(bumbumCount).padStart(3, '0');
-    setTimeout(() => el.remove(), 1500);
-
-    spawnConfettiBurst(cx, cy, 10, color);
-  }
-
-  function spawnConfettiBurst(cx, cy, count, color) {
-    for (let i = 0; i < count; i++) {
-      const p = document.createElement('div');
-      const size = 4 + Math.random() * 7;
-      const angle = (i / count) * Math.PI * 2 + Math.random() * 0.5;
-      const dist = 40 + Math.random() * 90;
-      const tx = Math.cos(angle) * dist;
-      const ty = Math.sin(angle) * dist;
-      p.style.cssText = `
-        position:fixed; left:${cx}px; top:${cy}px;
-        width:${size}px; height:${size}px;
-        background:${Math.random() > 0.5 ? color : '#fff'};
-        border-radius:${Math.random() > 0.5 ? '50%' : '2px'};
-        pointer-events:none; z-index:8999;
-        transform: translate(-50%,-50%);
-      `;
-      document.body.appendChild(p);
-      const kf = p.animate([
-        { transform: `translate(-50%,-50%)`, opacity: 1 },
-        { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${Math.random()*360}deg)`, opacity: 0 }
-      ], { duration: 500 + Math.random() * 300, easing: 'ease-out', fill: 'forwards' });
-      kf.onfinish = () => p.remove();
+    function resize() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W * DPR;
+      canvas.height = H * DPR;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+      ctx.scale(DPR, DPR);
+      spawn();
     }
-  }
 
-  // ============ Floating confetti (hero background) ============
-  function setupFloatingConfetti() {
-    const hero = document.getElementById('hero');
-    if (!hero) return;
-    const colors = ['#1d4eff', '#ffd84d', '#ff6b35', '#39d98a', '#ff4d9e'];
-    for (let i = 0; i < 20; i++) {
-      const el = document.createElement('div');
-      el.className = 'confetti';
-      const size = 4 + Math.random() * 10;
-      el.style.cssText = `
-        width:${size}px; height:${size}px;
-        background:${colors[i % colors.length]};
-        border-radius:${Math.random() > 0.5 ? '50%' : '2px'};
-        left:${Math.random() * 100}%;
-        top:${80 + Math.random() * 50}%;
-        animation-duration:${6 + Math.random() * 10}s;
-        animation-delay:${Math.random() * -12}s;
-      `;
-      hero.appendChild(el);
+    function spawn() {
+      const target = isMobile ? 50 : Math.floor((W * H) / 14000);
+      particles = [];
+      for (let i = 0; i < target; i++) {
+        particles.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          vx: (Math.random() - 0.5) * 0.25,
+          vy: (Math.random() - 0.5) * 0.25,
+          r: 0.5 + Math.random() * 1.6,
+          baseR: 0.5 + Math.random() * 1.6
+        });
+      }
     }
-  }
 
-  // ============ Custom cursor ============
-  function setupCursor() {
-    if (!window.matchMedia('(pointer: fine)').matches) return;
+    function tick() {
+      ctx.clearRect(0, 0, W, H);
 
-    const dot = document.querySelector('.cursor-dot');
-    const ring = document.querySelector('.cursor-ring');
-    if (!dot || !ring) return;
+      const linkDist = 130 + audioLevel * 60;
+      const linkDist2 = linkDist * linkDist;
 
-    document.body.classList.add('has-cursor');
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
 
-    let mx = window.innerWidth / 2, my = window.innerHeight / 2;
-    let rx = mx, ry = my;
+        if (p.x < 0) p.x = W; else if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H; else if (p.y > H) p.y = 0;
 
-    document.addEventListener('mousemove', e => {
-      mx = e.clientX;
-      my = e.clientY;
-      dot.style.left = mx + 'px';
-      dot.style.top = my + 'px';
-    });
-
-    function animateRing() {
-      rx += (mx - rx) * 0.1;
-      ry += (my - ry) * 0.1;
-      ring.style.left = rx + 'px';
-      ring.style.top = ry + 'px';
-      requestAnimationFrame(animateRing);
-    }
-    animateRing();
-
-    const interactives = 'button, a, .hobby-card, .game-card, .bum-trigger, .discord-bubble';
-    document.querySelectorAll(interactives).forEach(el => {
-      el.addEventListener('mouseenter', () => {
-        dot.classList.add('hover');
-        ring.classList.add('hover');
-      });
-      el.addEventListener('mouseleave', () => {
-        dot.classList.remove('hover');
-        ring.classList.remove('hover');
-      });
-    });
-  }
-
-  // ============ 3D Tilt on cards ============
-  function setupTilt() {
-    document.querySelectorAll('[data-tilt]').forEach(el => {
-      let rafId = null;
-      let targetRx = 0, targetRy = 0;
-      let currentRx = 0, currentRy = 0;
-
-      el.addEventListener('mousemove', e => {
-        const rect = el.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const cx = rect.width / 2;
-        const cy = rect.height / 2;
-        targetRx = ((y - cy) / cy) * 10;
-        targetRy = ((x - cx) / cx) * -10;
-
-        const shine = el.querySelector('.card-shine');
-        if (shine) {
-          const px = (x / rect.width) * 100;
-          const py = (y / rect.height) * 100;
-          shine.style.background = `radial-gradient(circle at ${px}% ${py}%, rgba(255,255,255,0.12) 0%, transparent 55%)`;
-          shine.style.opacity = '1';
-        }
-
-        if (!rafId) {
-          const tick = () => {
-            currentRx += (targetRx - currentRx) * 0.15;
-            currentRy += (targetRy - currentRy) * 0.15;
-            el.style.transform = `perspective(900px) rotateX(${currentRx}deg) rotateY(${currentRy}deg) translateZ(8px)`;
-            if (Math.abs(targetRx - currentRx) > 0.05 || Math.abs(targetRy - currentRy) > 0.05) {
-              rafId = requestAnimationFrame(tick);
-            } else {
-              rafId = null;
-            }
-          };
-          rafId = requestAnimationFrame(tick);
-        }
-      });
-
-      el.addEventListener('mouseleave', () => {
-        targetRx = 0;
-        targetRy = 0;
-        const lerp = () => {
-          currentRx += (0 - currentRx) * 0.12;
-          currentRy += (0 - currentRy) * 0.12;
-          el.style.transform = `perspective(900px) rotateX(${currentRx}deg) rotateY(${currentRy}deg) translateZ(0px)`;
-          if (Math.abs(currentRx) > 0.05 || Math.abs(currentRy) > 0.05) {
-            requestAnimationFrame(lerp);
-          } else {
-            el.style.transform = '';
+        if (mouse.active) {
+          const mdx = p.x - mouse.x;
+          const mdy = p.y - mouse.y;
+          const md2 = mdx * mdx + mdy * mdy;
+          if (md2 < 22500) {
+            const f = (1 - md2 / 22500) * 0.6;
+            p.x += (mdx / Math.sqrt(md2)) * f;
+            p.y += (mdy / Math.sqrt(md2)) * f;
           }
-        };
-        requestAnimationFrame(lerp);
+        }
 
-        const shine = el.querySelector('.card-shine');
-        if (shine) shine.style.opacity = '0';
-      });
+        p.r = p.baseR * (1 + audioLevel * 1.2);
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(0, 255, 170, ${0.35 + audioLevel * 0.4})`;
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const q = particles[j];
+          const dx = p.x - q.x;
+          const dy = p.y - q.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < linkDist2) {
+            const a = (1 - d2 / linkDist2) * (0.18 + audioLevel * 0.25);
+            ctx.strokeStyle = `rgba(74, 127, 255, ${a})`;
+            ctx.lineWidth = 0.6;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(q.x, q.y);
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', e => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+      mouse.active = true;
     });
+    window.addEventListener('mouseleave', () => mouse.active = false);
+
+    resize();
+    if (!reduceMotion) tick();
+
+    return {
+      setAudio: lvl => audioLevel = lvl
+    };
   }
 
-  // ============ Hero parallax ============
-  function setupHeroParallax() {
-    const hero = document.getElementById('hero');
-    const glow = hero && hero.querySelector('.hero-bg-glow');
-    if (!glow) return;
+  /* ============================================
+     AUDIO — ambient pad + amplitude analyser
+     ============================================ */
+  function initAudio(onLevel) {
+    let ctx = null;
+    let masterGain = null;
+    let analyser = null;
+    let buffer = null;
+    let voices = [];
+    let on = false;
 
-    let tx = 0, ty = 0;
-    document.addEventListener('mousemove', e => {
-      tx = (e.clientX / window.innerWidth - 0.5) * 60;
-      ty = (e.clientY / window.innerHeight - 0.5) * 40;
-    });
+    function build() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      ctx = new AC();
+      masterGain = ctx.createGain();
+      masterGain.gain.value = 0;
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      buffer = new Uint8Array(analyser.frequencyBinCount);
+      masterGain.connect(analyser);
+      analyser.connect(ctx.destination);
 
-    let cx = 0, cy = 0;
+      const lpf = ctx.createBiquadFilter();
+      lpf.type = 'lowpass';
+      lpf.frequency.value = 900;
+      lpf.Q.value = 0.7;
+      lpf.connect(masterGain);
+
+      const notes = [55, 82.5, 110, 165, 220];
+      voices = notes.map((freq, i) => {
+        const o = ctx.createOscillator();
+        const og = ctx.createGain();
+        o.type = i === 0 ? 'sine' : (i % 2 === 0 ? 'triangle' : 'sine');
+        o.frequency.value = freq;
+        og.gain.value = 0.15 / (i + 1);
+        o.connect(og).connect(lpf);
+        o.start();
+        return { o, og };
+      });
+
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.frequency.value = 0.07;
+      lfoGain.gain.value = 300;
+      lfo.connect(lfoGain).connect(lpf.frequency);
+      lfo.start();
+    }
+
+    function poll() {
+      if (!analyser || !on) {
+        onLevel(0);
+      } else {
+        analyser.getByteFrequencyData(buffer);
+        let sum = 0;
+        for (let i = 0; i < buffer.length; i++) sum += buffer[i];
+        const avg = (sum / buffer.length) / 255;
+        onLevel(avg);
+      }
+      requestAnimationFrame(poll);
+    }
+    poll();
+
+    return {
+      toggle() {
+        if (!ctx) build();
+        if (!ctx) return false;
+        if (ctx.state === 'suspended') ctx.resume();
+        on = !on;
+        const target = on ? 0.35 : 0;
+        masterGain.gain.cancelScheduledValues(ctx.currentTime);
+        masterGain.gain.linearRampToValueAtTime(target, ctx.currentTime + 1.2);
+        return on;
+      }
+    };
+  }
+
+  /* ============================================
+     INTRO
+     ============================================ */
+  function initIntro() {
+    const intro = document.getElementById('intro');
+    const num = document.getElementById('intro-count');
+    const fill = document.querySelector('.intro-bar-fill');
+    const start = document.getElementById('intro-start');
+    if (!intro) return;
+
+    let count = 0;
     const tick = () => {
-      cx += (tx - cx) * 0.06;
-      cy += (ty - cy) * 0.06;
-      glow.style.transform = `translate(calc(-50% + ${cx}px), calc(-50% + ${cy}px))`;
-      requestAnimationFrame(tick);
+      count = Math.min(count + (1 + Math.random() * 3), 100);
+      num.textContent = String(Math.floor(count)).padStart(3, '0');
+      fill.style.width = count + '%';
+      if (count < 100) {
+        setTimeout(tick, 30 + Math.random() * 40);
+      } else {
+        start.classList.add('ready');
+      }
+    };
+    setTimeout(tick, 200);
+
+    const go = () => {
+      intro.classList.add('gone');
+      setTimeout(() => intro.remove(), 1000);
+    };
+    start.addEventListener('click', go);
+  }
+
+  /* ============================================
+     CLOCK / HUD
+     ============================================ */
+  function initClock() {
+    const t = document.getElementById('hud-time');
+    if (!t) return;
+    const tick = () => {
+      const d = new Date();
+      t.textContent =
+        String(d.getHours()).padStart(2, '0') + ':' +
+        String(d.getMinutes()).padStart(2, '0') + ':' +
+        String(d.getSeconds()).padStart(2, '0');
     };
     tick();
+    setInterval(tick, 1000);
   }
 
-  // ============ Finale number count-up ============
-  function setupFinaleNum() {
-    const el = document.querySelector('[data-finale-num]');
-    if (!el) return;
-
-    const target = parseInt(el.textContent, 10);
-    let triggered = false;
-
-    const obs = new IntersectionObserver(entries => {
-      if (triggered || !entries[0].isIntersecting) return;
-      triggered = true;
-      let count = 0;
-      const tick = () => {
-        count++;
-        el.textContent = count;
-        if (count < target) setTimeout(tick, 80);
-      };
-      tick();
-    }, { threshold: 0.4 });
-
-    obs.observe(el);
-  }
-
-  // ============ Intro ============
-  function setupIntro() {
-    const overlay = document.getElementById('intro-overlay');
-    if (!overlay) return;
-    const btn = overlay.querySelector('.intro-btn');
-    const go = () => {
-      initAudio();
-      overlay.classList.add('gone');
-      setTimeout(() => overlay.remove(), 1100);
-    };
-    btn.addEventListener('click', e => { e.stopPropagation(); go(); });
-  }
-
-  // ============ Scroll reveals ============
-  function setupReveals() {
-    const els = document.querySelectorAll('.reveal, .reveal-up, .reveal-scale');
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (e.isIntersecting) e.target.classList.add('in');
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
-    els.forEach(el => obs.observe(el));
-  }
-
-  // ============ Scroll progress ============
-  function setupScrollProgress() {
-    const fill = document.querySelector('.scroll-progress .fill');
-    if (!fill) return;
-    window.addEventListener('scroll', () => {
-      const s = window.scrollY;
-      const total = document.documentElement.scrollHeight - window.innerHeight;
-      fill.style.width = Math.min(100, (s / total) * 100) + '%';
-    }, { passive: true });
-  }
-
-  // ============ Countdown ============
-  function setupCountdown() {
-    const el = document.getElementById('days-left');
-    const pill = document.querySelector('.hero-date-pill');
+  /* ============================================
+     HERO COUNTDOWN
+     ============================================ */
+  function initCountdown() {
+    const el = document.getElementById('hero-countdown');
     if (!el) return;
     const target = new Date('2026-05-12T00:00:00');
     const update = () => {
       const now = new Date();
       const diff = target - now;
       const days = Math.ceil(diff / 86400000);
-      if (pill) pill.classList.remove('tomorrow', 'today');
       if (days > 1) {
-        el.textContent = `Noch ${days} Tage`;
+        el.textContent = `T-${days} TAGE`;
       } else if (days === 1) {
-        el.textContent = 'MORGEN! 🎂';
-        if (pill) pill.classList.add('tomorrow');
+        const hrs = Math.max(0, Math.floor(diff / 3600000));
+        el.textContent = `T-${hrs}H · MORGEN`;
       } else if (days === 0) {
-        el.textContent = 'HEUTE! 🎉';
-        if (pill) pill.classList.add('today');
+        el.textContent = 'LIVE · HEUTE';
       } else {
-        el.textContent = '12.05.2026';
+        el.textContent = 'CELEBRATED · 12.05.26';
       }
     };
     update();
-    setInterval(update, 60000);
+    setInterval(update, 30000);
   }
 
-  // ============ Achievement System ============
-  let achTimer = null;
-  function showAchievement(icon, title, desc) {
-    const el = document.getElementById('achievement');
-    if (!el) return;
-    document.getElementById('ach-icon').textContent = icon;
-    document.getElementById('ach-title').textContent = title;
-    document.getElementById('ach-desc').textContent = desc;
-    el.classList.remove('show');
-    void el.offsetWidth;
-    el.classList.add('show');
-    clearTimeout(achTimer);
-    achTimer = setTimeout(() => el.classList.remove('show'), 3600);
+  /* ============================================
+     SCROLL RAIL + COORDINATES
+     ============================================ */
+  function initScroll() {
+    const fill = document.querySelector('.scroll-fill');
+    const coord = document.getElementById('scroll-coord');
+    if (!fill) return;
+    window.addEventListener('scroll', () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? (window.scrollY / max) * 100 : 0;
+      fill.style.height = p + '%';
+      if (coord) coord.textContent = String(Math.floor(p)).padStart(3, '0');
+    }, { passive: true });
   }
 
-  // ============ Screen flash ============
-  function screenFlash(color = 'rgba(255,216,77,0.22)') {
-    const el = document.createElement('div');
-    el.className = 'screen-flash';
-    el.style.background = color;
-    document.body.appendChild(el);
-    el.animate(
-      [{ opacity: 1 }, { opacity: 0 }],
-      { duration: 700, easing: 'ease-out', fill: 'forwards' }
-    ).onfinish = () => el.remove();
-  }
+  /* ============================================
+     3D PLAYER CARD
+     ============================================ */
+  function init3DCard() {
+    const card = document.getElementById('player-card');
+    if (!card) return;
+    const stage = card.parentElement;
+    const holo = card.querySelector('.card-holo');
+    const shine = card.querySelector('.card-shine');
 
-  // ============ Big confetti drop ============
-  function bigConfettiDrop() {
-    const colors = ['#1d4eff','#ffd84d','#ff6b35','#39d98a','#ff4d9e','#4d78ff'];
-    for (let i = 0; i < 70; i++) {
-      setTimeout(() => {
-        const p = document.createElement('div');
-        const size = 6 + Math.random() * 10;
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        p.style.cssText = `
-          position:fixed; left:${Math.random()*100}%; top:-20px;
-          width:${size}px; height:${size}px; background:${color};
-          border-radius:${Math.random()>.5?'50%':'3px'};
-          pointer-events:none; z-index:8998;
-        `;
-        document.body.appendChild(p);
-        const tx = (Math.random() - 0.5) * 300;
-        p.animate([
-          { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
-          { transform: `translateY(${window.innerHeight+60}px) translateX(${tx}px) rotate(${720*(Math.random()>.5?1:-1)}deg)`, opacity: 0 }
-        ], { duration: 2000 + Math.random()*1200, easing: 'ease-in', fill: 'forwards' }).onfinish = () => p.remove();
-      }, Math.random() * 500);
-    }
-  }
+    let targetRX = 0, targetRY = 0;
+    let curRX = 0, curRY = 0;
+    let bgX = 50, bgY = 50;
+    let active = false;
 
-  // ============ Hero sparkles ============
-  function setupHeroSparkles() {
-    const hero = document.querySelector('.hero-name');
-    if (!hero || !window.matchMedia('(pointer: fine)').matches) return;
-    let lastSpark = 0;
-    hero.addEventListener('mousemove', e => {
-      const now = performance.now();
-      if (now - lastSpark < 70) return;
-      lastSpark = now;
-      const sp = document.createElement('div');
-      const size = 3 + Math.random() * 7;
-      sp.className = 'sparkle';
-      sp.style.cssText = `left:${e.clientX}px;top:${e.clientY}px;width:${size}px;height:${size}px;`;
-      const colors = ['var(--yellow)','var(--blue-light)','#fff','var(--orange)'];
-      sp.style.background = colors[Math.floor(Math.random()*colors.length)];
-      document.body.appendChild(sp);
-      sp.animate([
-        { opacity: 1, transform: 'translate(-50%,-50%) scale(1)' },
-        { opacity: 0, transform: `translate(calc(-50% + ${(Math.random()-.5)*70}px),calc(-50% - ${20+Math.random()*50}px)) scale(0)` }
-      ], { duration: 600 + Math.random()*300, easing: 'ease-out', fill: 'forwards' }).onfinish = () => sp.remove();
-    });
-  }
+    function update(e) {
+      const r = card.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const x = e.clientX - cx;
+      const y = e.clientY - cy;
+      targetRY = (x / (r.width / 2)) * 18;
+      targetRX = -(y / (r.height / 2)) * 18;
 
-  // ============ Pokémon catch popup ============
-  const POKEMON_LIST = ['Pikachu!', 'Glumanda!', 'Schiggy!', 'Bisasam!', 'Evoli!', 'Mew!', 'Relaxo!', 'Enton!'];
-  function pokePopup(text, x, y) {
-    const el = document.createElement('div');
-    el.className = 'poke-popup';
-    el.textContent = text || POKEMON_LIST[Math.floor(Math.random() * POKEMON_LIST.length)];
-    el.style.left = (x ?? window.innerWidth / 2) + 'px';
-    el.style.top = (y ?? window.innerHeight / 2) + 'px';
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 1700);
-  }
-
-  // ============ Easter Eggs ============
-  function setupEasterEggs() {
-    const found = new Set();
-    let eggCount = 0;
-    const TOTAL = 9;
-
-    function unlock(id, icon, title, desc, cb) {
-      if (found.has(id)) return;
-      found.add(id);
-      eggCount++;
-      showAchievement(icon, title, desc);
-      const counter = document.getElementById('egg-found');
-      if (counter) counter.textContent = eggCount;
-      if (eggCount >= TOTAL) {
-        const wrap = document.getElementById('egg-counter');
-        if (wrap) { wrap.classList.add('found-all'); wrap.title = 'Alle Easter Eggs gefunden!'; }
-        setTimeout(() => showAchievement('🏆', 'Alle gefunden!', 'Du hast alle 7 Easter Eggs entdeckt.'), 4000);
+      const lx = ((e.clientX - r.left) / r.width) * 100;
+      const ly = ((e.clientY - r.top) / r.height) * 100;
+      bgX = lx;
+      bgY = ly;
+      if (shine) {
+        shine.style.background = `radial-gradient(circle at ${lx}% ${ly}%, rgba(255,255,255,0.35), transparent 50%)`;
+        shine.style.opacity = '1';
       }
-      if (cb) cb();
+      if (holo) {
+        holo.style.backgroundPosition = `${lx}% ${ly}%`;
+      }
     }
 
-    // 1. Chat bubble click → Bum Bum (hidden easter egg)
-    document.addEventListener('click', e => {
-      if (e.target.closest('.bum-trigger')) {
-        showBumBum(e.clientX, e.clientY);
-        unlock('bumbum', '💬', 'Bum Bum', 'Das versteckte Easter Egg im Chat.', null);
-      }
-    });
-
-    // 2. Double-click hero name
-    const heroName = document.querySelector('.hero-name');
-    if (heroName) {
-      heroName.addEventListener('dblclick', () => {
-        unlock('philip', '🎂', 'Birthday Boy', 'Philip — höchstpersönlich.', () => {
-          screenFlash('rgba(29,78,255,0.2)');
-          bigConfettiDrop();
-          sfxBum();
-        });
-      });
+    function reset() {
+      targetRX = 0;
+      targetRY = 0;
+      if (shine) shine.style.opacity = '0';
     }
 
-    // 3. Click the "13" in finale
-    const finaleNum = document.querySelector('[data-finale-num]');
-    if (finaleNum) {
-      finaleNum.addEventListener('click', () => {
-        unlock('thirteen', '🎉', 'Dreizehn', 'Die Zahl des Jahres.', () => {
-          screenFlash('rgba(255,216,77,0.25)');
-          bigConfettiDrop();
-          sfxBum();
-          let n = 1;
-          const tick = () => { finaleNum.textContent = n; if (n < 13) { n++; setTimeout(tick, 65); } };
-          tick();
-        });
-      });
+    // Hover behavior
+    stage.addEventListener('mousemove', e => { active = true; update(e); });
+    stage.addEventListener('mouseleave', reset);
+
+    // Touch drag (mobile)
+    card.addEventListener('touchmove', e => {
+      const t = e.touches[0];
+      update({ clientX: t.clientX, clientY: t.clientY });
+    }, { passive: true });
+    card.addEventListener('touchend', reset);
+
+    // Idle wobble when no interaction
+    let idleT = 0;
+    function tick() {
+      curRX += (targetRX - curRX) * 0.12;
+      curRY += (targetRY - curRY) * 0.12;
+      idleT += 0.012;
+      const idleRX = !active ? Math.sin(idleT) * 4 : 0;
+      const idleRY = !active ? Math.cos(idleT * 0.7) * 5 : 0;
+      card.style.transform = `rotateX(${curRX + idleRX}deg) rotateY(${curRY + idleRY}deg)`;
+      requestAnimationFrame(tick);
     }
+    tick();
 
-    // 4. Click the date pill
-    const datePill = document.querySelector('.hero-date-pill');
-    if (datePill) {
-      datePill.style.cursor = 'pointer';
-      datePill.addEventListener('click', () => {
-        unlock('date', '📅', '12. Mai', 'Heute ist dein Tag.', () => {
-          screenFlash('rgba(57,217,138,0.18)');
-          spawnConfettiBurst(window.innerWidth/2, window.innerHeight/2, 30, '#39d98a');
-          sfxBum();
-        });
-      });
-    }
-
-    // 5. Right-click anywhere
-    document.addEventListener('contextmenu', e => {
-      e.preventDefault();
-      unlock('rightclick', '👀', 'Inspector', 'Neugierig? Gut so.', null);
-    });
-
-    // 6. Card sequence: ⚽ → 🎾 → 💬
-    let cardSeq = [];
-    document.querySelectorAll('.hobby-card').forEach((el, i) => {
-      el.addEventListener('click', () => {
-        cardSeq.push(i);
-        if (cardSeq.length > 3) cardSeq.shift();
-        if (cardSeq.join(',') === '0,1,2') {
-          unlock('sequence', '🏆', 'Sport Mode', 'Fußball → Tennis → Discord. In der richtigen Reihenfolge.', () => {
-            screenFlash('rgba(29,78,255,0.2)');
-            bigConfettiDrop();
-          });
-          cardSeq = [];
-        }
-      });
-    });
-
-    // 7. Keyboard: type "philip", "micksa", "yamal", "pikachu", or Konami code
-    const konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
-    let buf = [];
-    document.addEventListener('keydown', e => {
-      buf.push(e.key); if (buf.length > 14) buf.shift();
-
-      // Konami
-      if (buf.slice(-10).join(',').toLowerCase() === konami.join(',').toLowerCase()) {
-        unlock('konami', '🎮', 'Konami Veteran', '↑↑↓↓←→←→BA — ein Klassiker.', () => {
-          screenFlash('rgba(255,77,158,0.2)');
-          bigConfettiDrop();
-          sfxBum();
-        });
-        buf = []; return;
-      }
-      const last6 = buf.slice(-6).join('').toLowerCase();
-      const last7 = buf.slice(-7).join('').toLowerCase();
-      // "philip"
-      if (last6 === 'philip') {
-        showAchievement('👦', 'Hey Philip', 'Du tippst deinen eigenen Namen ein. Nice.');
-        for (let i = 0; i < 3; i++) setTimeout(() => showBumBum(), i * 200);
-        buf = []; return;
-      }
-      // "micksa"
-      if (last6 === 'micksa') {
-        unlock('micksa', '👋', 'Hey Micksa', 'Der Macher höchstpersönlich.', () => {
-          screenFlash('rgba(255,107,53,0.18)');
-        });
-        buf = []; return;
-      }
-      // "yamal" — Lamine Yamal tribute
-      if (buf.slice(-5).join('').toLowerCase() === 'yamal') {
-        unlock('yamal', '⚽', 'Lamine Yamal', 'Number 10. Sein Idol.', () => {
-          screenFlash('rgba(216, 0, 39, 0.22)');
-          bigConfettiDrop();
-          sfxBum();
-          // animate the jersey number
-          const jn = document.querySelector('.jersey-number');
-          if (jn) {
-            jn.animate(
-              [{ transform: 'scale(1)' }, { transform: 'scale(1.4) rotate(-8deg)' }, { transform: 'scale(1)' }],
-              { duration: 800, easing: 'cubic-bezier(0.2,0.7,0.2,1)' }
-            );
-          }
-        });
-        buf = []; return;
-      }
-      // "pikachu" — Micksa's Pokémon love
-      if (last7 === 'pikachu') {
-        unlock('pikachu', '⚡', 'Pikachu', 'Micksas Lieblings-Pokémon seit 1999.', () => {
-          screenFlash('rgba(255, 216, 77, 0.28)');
-          for (let i = 0; i < 5; i++) {
-            setTimeout(() => pokePopup('Pikachu! ⚡',
-              window.innerWidth * (0.2 + Math.random() * 0.6),
-              window.innerHeight * (0.2 + Math.random() * 0.6)
-            ), i * 200);
-          }
-          sfxBum();
-        });
-        buf = []; return;
-      }
-    });
-
-    // 8. Click the Pokéball — Micksa's signature easter egg
-    const pokeball = document.getElementById('pokeball-egg');
-    if (pokeball) {
-      pokeball.addEventListener('click', () => {
-        unlock('pokeball', '🔴', 'Gotta catch \'em all', 'Micksas Pokéball gefunden — seit 1999.', () => {
-          const rect = pokeball.getBoundingClientRect();
-          const cx = rect.left + rect.width / 2;
-          const cy = rect.top + rect.height / 2;
-          pokeball.classList.add('found');
-          spawnConfettiBurst(cx, cy, 30, '#ff3b3b');
-          setTimeout(() => {
-            pokeball.classList.add('caught');
-            pokePopup(POKEMON_LIST[Math.floor(Math.random() * POKEMON_LIST.length)], cx, cy);
-            sfxBum();
-          }, 500);
-          setTimeout(() => {
-            pokeball.classList.remove('caught', 'found');
-            pokeball.style.opacity = '0.35';
-          }, 3500);
-        });
-      });
-    }
-
-    // 9. Click the Yamal jersey
-    const jersey = document.querySelector('.yamal-jersey');
-    if (jersey) {
-      jersey.addEventListener('click', () => {
-        unlock('jersey', '👕', 'Trikot-Träger', 'Yamal · 10 · Forever.', () => {
-          screenFlash('rgba(216, 0, 39, 0.18)');
-          spawnConfettiBurst(window.innerWidth/2, window.innerHeight/2, 25, '#ffd84d');
-          sfxBum();
-        });
-      });
-    }
-
-    // Mini Pokéball in brief — bonus, no achievement, just delight
-    const miniPoke = document.querySelector('.poke-mini');
-    if (miniPoke) {
-      miniPoke.addEventListener('click', e => {
-        e.stopPropagation();
-        pokePopup(POKEMON_LIST[Math.floor(Math.random() * POKEMON_LIST.length)], e.clientX, e.clientY);
-        spawnConfettiBurst(e.clientX, e.clientY, 12, '#ffd84d');
-      });
-    }
+    setTimeout(() => { active = false; }, 3000);
   }
 
-  // ============ Cursor trail ============
-  function setupCursorTrail() {
-    if (!window.matchMedia('(pointer: fine)').matches) return;
-    const container = document.querySelector('.cursor-trail');
-    if (!container) return;
-    let last = 0;
-    document.addEventListener('mousemove', e => {
-      const now = performance.now();
-      if (now - last < 28) return;
-      last = now;
-      const dot = document.createElement('div');
-      dot.className = 'trail-dot';
-      dot.style.left = e.clientX + 'px';
-      dot.style.top = e.clientY + 'px';
-      const hue = ['#1d4eff', '#4d78ff', '#ffd84d', '#ff6b35'][Math.floor(Math.random() * 4)];
-      dot.style.background = hue;
-      dot.style.boxShadow = `0 0 12px ${hue}88`;
-      container.appendChild(dot);
-      setTimeout(() => dot.remove(), 720);
-    });
-  }
-
-  // ============ Magnetic hover ============
-  function setupMagnetic() {
-    if (!window.matchMedia('(pointer: fine)').matches) return;
-    document.querySelectorAll('[data-magnetic]').forEach(el => {
-      const strength = 0.35;
-      el.addEventListener('mousemove', e => {
-        const rect = el.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        const dx = (e.clientX - cx) * strength;
-        const dy = (e.clientY - cy) * strength;
-        el.style.transform = `translate(${dx}px, ${dy}px)`;
-      });
-      el.addEventListener('mouseleave', () => {
-        el.style.transform = '';
-      });
-    });
-  }
-
-  // ============ Text scramble ============
-  function scrambleText(el, finalText, duration = 900) {
-    const chars = '!<>-_\\/[]{}—=+*^?#·•◆◇';
-    const start = performance.now();
-    const tick = now => {
-      const p = Math.min((now - start) / duration, 1);
-      const reveal = Math.floor(p * finalText.length);
-      let out = '';
-      for (let i = 0; i < finalText.length; i++) {
-        if (i < reveal) out += finalText[i];
-        else if (finalText[i] === ' ') out += ' ';
-        else out += chars[Math.floor(Math.random() * chars.length)];
-      }
-      el.textContent = out;
-      if (p < 1) requestAnimationFrame(tick);
-      else el.textContent = finalText;
-    };
-    requestAnimationFrame(tick);
-  }
-
-  function setupScramble() {
-    const els = document.querySelectorAll('[data-scramble]');
+  /* ============================================
+     COUNT-UP STATS
+     ============================================ */
+  function initCountUps() {
+    const els = document.querySelectorAll('[data-count-to]');
     const obs = new IntersectionObserver(entries => {
       entries.forEach(entry => {
-        if (entry.isIntersecting && !entry.target.dataset.scrambled) {
-          entry.target.dataset.scrambled = '1';
-          const text = entry.target.textContent;
-          scrambleText(entry.target, text);
-        }
+        if (!entry.isIntersecting || entry.target.dataset.counted) return;
+        entry.target.dataset.counted = '1';
+        const target = parseInt(entry.target.dataset.countTo, 10);
+        const dur = 1800;
+        const start = performance.now();
+        const tick = now => {
+          const p = Math.min((now - start) / dur, 1);
+          const eased = 1 - Math.pow(1 - p, 3);
+          const val = Math.floor(target * eased);
+          entry.target.textContent = val.toLocaleString('de-DE');
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
       });
-    }, { threshold: 0.3 });
+    }, { threshold: 0.4 });
     els.forEach(el => obs.observe(el));
   }
 
-  // ============ Init ============
+  /* ============================================
+     SECTION REVEAL
+     ============================================ */
+  function initReveal() {
+    const sections = document.querySelectorAll('section');
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('in');
+      });
+    }, { threshold: 0.1 });
+    sections.forEach(s => obs.observe(s));
+  }
+
+  /* ============================================
+     TERMINAL TYPE
+     ============================================ */
+  function initTerminal() {
+    const lines = document.querySelectorAll('[data-typeline]');
+    if (!lines.length) return;
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        obs.disconnect();
+        lines.forEach((line, i) => {
+          setTimeout(() => line.classList.add('shown'), i * 250);
+        });
+      });
+    }, { threshold: 0.35 });
+    obs.observe(document.querySelector('.terminal'));
+  }
+
+  /* ============================================
+     HERO GLITCH (occasional)
+     ============================================ */
+  function initGlitch() {
+    const name = document.querySelector('[data-glitch]');
+    if (!name || reduceMotion) return;
+    const fire = () => {
+      name.classList.add('glitch');
+      setTimeout(() => name.classList.remove('glitch'), 400);
+    };
+    setTimeout(fire, 2500);
+    setInterval(() => {
+      if (Math.random() < 0.4) fire();
+    }, 5500);
+    name.addEventListener('click', fire);
+  }
+
+  /* ============================================
+     FINALE NUMBER
+     ============================================ */
+  function initFinaleNum() {
+    const el = document.querySelector('[data-finale-num]');
+    if (!el) return;
+    const target = parseInt(el.textContent, 10);
+    let triggered = false;
+    const obs = new IntersectionObserver(entries => {
+      if (triggered || !entries[0].isIntersecting) return;
+      triggered = true;
+      let n = 0;
+      const tick = () => {
+        n++;
+        el.textContent = n;
+        if (n < target) setTimeout(tick, 70);
+      };
+      tick();
+    }, { threshold: 0.5 });
+    obs.observe(el);
+
+    el.addEventListener('click', () => {
+      const popup = document.createElement('div');
+      popup.className = 'found-popup';
+      popup.textContent = 'Happy Birthday';
+      popup.style.left = (window.innerWidth / 2) + 'px';
+      popup.style.top = (window.innerHeight / 2) + 'px';
+      document.body.appendChild(popup);
+      setTimeout(() => popup.remove(), 1800);
+    });
+  }
+
+  /* ============================================
+     GAME TILE TILT
+     ============================================ */
+  function initTilt() {
+    if (isMobile) return;
+    document.querySelectorAll('[data-tilt]').forEach(el => {
+      let rafId = null;
+      let tx = 0, ty = 0, cx = 0, cy = 0;
+      el.addEventListener('mousemove', e => {
+        const r = el.getBoundingClientRect();
+        const x = e.clientX - r.left;
+        const y = e.clientY - r.top;
+        tx = ((y - r.height / 2) / (r.height / 2)) * 6;
+        ty = ((x - r.width / 2) / (r.width / 2)) * -6;
+        if (!rafId) {
+          const tick = () => {
+            cx += (tx - cx) * 0.15;
+            cy += (ty - cy) * 0.15;
+            el.style.transform = `perspective(900px) rotateX(${cx}deg) rotateY(${cy}deg) translateY(-4px)`;
+            if (Math.abs(tx - cx) > 0.05 || Math.abs(ty - cy) > 0.05) {
+              rafId = requestAnimationFrame(tick);
+            } else { rafId = null; }
+          };
+          rafId = requestAnimationFrame(tick);
+        }
+      });
+      el.addEventListener('mouseleave', () => {
+        tx = 0; ty = 0;
+        const lerp = () => {
+          cx += (0 - cx) * 0.15;
+          cy += (0 - cy) * 0.15;
+          el.style.transform = `perspective(900px) rotateX(${cx}deg) rotateY(${cy}deg)`;
+          if (Math.abs(cx) > 0.05 || Math.abs(cy) > 0.05) requestAnimationFrame(lerp);
+          else el.style.transform = '';
+        };
+        requestAnimationFrame(lerp);
+      });
+    });
+  }
+
+  /* ============================================
+     INIT
+     ============================================ */
   document.addEventListener('DOMContentLoaded', () => {
-    setupIntro();
-    setupFloatingConfetti();
-    setupCursor();
-    setupCursorTrail();
-    setupMagnetic();
-    setupScramble();
-    setupTilt();
-    setupHeroParallax();
-    setupReveals();
-    setupScrollProgress();
-    setupCountdown();
-    setupEasterEggs();
-    setupHeroSparkles();
-    setupFinaleNum();
+    const particles = initParticles();
+    const audio = initAudio(level => {
+      if (particles) particles.setAudio(level);
+    });
 
+    const btn = document.getElementById('audio-toggle');
+    const label = btn && btn.querySelector('.audio-label');
+    btn.addEventListener('click', () => {
+      const on = audio.toggle();
+      btn.classList.toggle('on', on);
+      if (label) label.textContent = on ? 'AUDIO ON' : 'AUDIO OFF';
+    });
+
+    initIntro();
+    initClock();
+    initCountdown();
+    initScroll();
+    init3DCard();
+    initCountUps();
+    initReveal();
+    initTerminal();
+    initGlitch();
+    initFinaleNum();
+    initTilt();
   });
-
 })();

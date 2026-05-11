@@ -294,15 +294,25 @@
   // ============ Countdown ============
   function setupCountdown() {
     const el = document.getElementById('days-left');
+    const pill = document.querySelector('.hero-date-pill');
     if (!el) return;
     const target = new Date('2026-05-12T00:00:00');
     const update = () => {
       const now = new Date();
       const diff = target - now;
       const days = Math.ceil(diff / 86400000);
-      if (days > 0) el.textContent = `Noch ${days} Tage`;
-      else if (days === 0) el.textContent = 'HEUTE! 🎉';
-      else el.textContent = '12.05.2026';
+      if (pill) pill.classList.remove('tomorrow', 'today');
+      if (days > 1) {
+        el.textContent = `Noch ${days} Tage`;
+      } else if (days === 1) {
+        el.textContent = 'MORGEN! 🎂';
+        if (pill) pill.classList.add('tomorrow');
+      } else if (days === 0) {
+        el.textContent = 'HEUTE! 🎉';
+        if (pill) pill.classList.add('today');
+      } else {
+        el.textContent = '12.05.2026';
+      }
     };
     update();
     setInterval(update, 60000);
@@ -382,11 +392,23 @@
     });
   }
 
+  // ============ Pokémon catch popup ============
+  const POKEMON_LIST = ['Pikachu!', 'Glumanda!', 'Schiggy!', 'Bisasam!', 'Evoli!', 'Mew!', 'Relaxo!', 'Enton!'];
+  function pokePopup(text, x, y) {
+    const el = document.createElement('div');
+    el.className = 'poke-popup';
+    el.textContent = text || POKEMON_LIST[Math.floor(Math.random() * POKEMON_LIST.length)];
+    el.style.left = (x ?? window.innerWidth / 2) + 'px';
+    el.style.top = (y ?? window.innerHeight / 2) + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1700);
+  }
+
   // ============ Easter Eggs ============
   function setupEasterEggs() {
     const found = new Set();
     let eggCount = 0;
-    const TOTAL = 7;
+    const TOTAL = 9;
 
     function unlock(id, icon, title, desc, cb) {
       if (found.has(id)) return;
@@ -473,11 +495,11 @@
       });
     });
 
-    // 7. Keyboard: type "philip", "micksa", or Konami code
+    // 7. Keyboard: type "philip", "micksa", "yamal", "pikachu", or Konami code
     const konami = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
     let buf = [];
     document.addEventListener('keydown', e => {
-      buf.push(e.key); if (buf.length > 12) buf.shift();
+      buf.push(e.key); if (buf.length > 14) buf.shift();
 
       // Konami
       if (buf.slice(-10).join(',').toLowerCase() === konami.join(',').toLowerCase()) {
@@ -488,8 +510,9 @@
         });
         buf = []; return;
       }
-      // "philip"
       const last6 = buf.slice(-6).join('').toLowerCase();
+      const last7 = buf.slice(-7).join('').toLowerCase();
+      // "philip"
       if (last6 === 'philip') {
         showAchievement('👦', 'Hey Philip', 'Du tippst deinen eigenen Namen ein. Nice.');
         for (let i = 0; i < 3; i++) setTimeout(() => showBumBum(), i * 200);
@@ -500,9 +523,85 @@
         unlock('micksa', '👋', 'Hey Micksa', 'Der Macher höchstpersönlich.', () => {
           screenFlash('rgba(255,107,53,0.18)');
         });
-        buf = [];
+        buf = []; return;
+      }
+      // "yamal" — Lamine Yamal tribute
+      if (buf.slice(-5).join('').toLowerCase() === 'yamal') {
+        unlock('yamal', '⚽', 'Lamine Yamal', 'Number 10. Sein Idol.', () => {
+          screenFlash('rgba(216, 0, 39, 0.22)');
+          bigConfettiDrop();
+          sfxBum();
+          // animate the jersey number
+          const jn = document.querySelector('.jersey-number');
+          if (jn) {
+            jn.animate(
+              [{ transform: 'scale(1)' }, { transform: 'scale(1.4) rotate(-8deg)' }, { transform: 'scale(1)' }],
+              { duration: 800, easing: 'cubic-bezier(0.2,0.7,0.2,1)' }
+            );
+          }
+        });
+        buf = []; return;
+      }
+      // "pikachu" — Micksa's Pokémon love
+      if (last7 === 'pikachu') {
+        unlock('pikachu', '⚡', 'Pikachu', 'Micksas Lieblings-Pokémon seit 1999.', () => {
+          screenFlash('rgba(255, 216, 77, 0.28)');
+          for (let i = 0; i < 5; i++) {
+            setTimeout(() => pokePopup('Pikachu! ⚡',
+              window.innerWidth * (0.2 + Math.random() * 0.6),
+              window.innerHeight * (0.2 + Math.random() * 0.6)
+            ), i * 200);
+          }
+          sfxBum();
+        });
+        buf = []; return;
       }
     });
+
+    // 8. Click the Pokéball — Micksa's signature easter egg
+    const pokeball = document.getElementById('pokeball-egg');
+    if (pokeball) {
+      pokeball.addEventListener('click', () => {
+        unlock('pokeball', '🔴', 'Gotta catch \'em all', 'Micksas Pokéball gefunden — seit 1999.', () => {
+          const rect = pokeball.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          pokeball.classList.add('found');
+          spawnConfettiBurst(cx, cy, 30, '#ff3b3b');
+          setTimeout(() => {
+            pokeball.classList.add('caught');
+            pokePopup(POKEMON_LIST[Math.floor(Math.random() * POKEMON_LIST.length)], cx, cy);
+            sfxBum();
+          }, 500);
+          setTimeout(() => {
+            pokeball.classList.remove('caught', 'found');
+            pokeball.style.opacity = '0.35';
+          }, 3500);
+        });
+      });
+    }
+
+    // 9. Click the Yamal jersey
+    const jersey = document.querySelector('.yamal-jersey');
+    if (jersey) {
+      jersey.addEventListener('click', () => {
+        unlock('jersey', '👕', 'Trikot-Träger', 'Yamal · 10 · Forever.', () => {
+          screenFlash('rgba(216, 0, 39, 0.18)');
+          spawnConfettiBurst(window.innerWidth/2, window.innerHeight/2, 25, '#ffd84d');
+          sfxBum();
+        });
+      });
+    }
+
+    // Mini Pokéball in brief — bonus, no achievement, just delight
+    const miniPoke = document.querySelector('.poke-mini');
+    if (miniPoke) {
+      miniPoke.addEventListener('click', e => {
+        e.stopPropagation();
+        pokePopup(POKEMON_LIST[Math.floor(Math.random() * POKEMON_LIST.length)], e.clientX, e.clientY);
+        spawnConfettiBurst(e.clientX, e.clientY, 12, '#ffd84d');
+      });
+    }
   }
 
   // ============ Cursor trail ============

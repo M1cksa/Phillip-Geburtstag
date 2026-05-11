@@ -1129,6 +1129,370 @@ section {
   text-shadow: 0 0 120px var(--yellow-glow), 0 0 40px rgba(255,216,77,0.8) !important;
 }
 
+/* ============================================
+   YAMAL TRIBUTE
+   ============================================ */
+#yamal {
+  flex-direction: column;
+  gap: 3rem;
+  align-items: flex-start;
+  min-height: auto;
+  padding: 12vh 6vw;
+  position: relative;
+  overflow: hidden;
+}
+
+.yamal-bg-stripe {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(165, 0, 64, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 80% 70%, rgba(255, 199, 0, 0.10) 0%, transparent 45%);
+  pointer-events: none;
+}
+
+.yamal-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.yamal-heading {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(3rem, 8vw, 7rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  margin-bottom: 3rem;
+}
+.yamal-heading em {
+  font-style: italic;
+  background: linear-gradient(135deg, #ffd84d 0%, #ff6b35 50%, #d80027 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.yamal-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 3rem;
+  align-items: stretch;
+}
+
+/* The Jersey */
+.yamal-jersey {
+  position: relative;
+  background: linear-gradient(180deg, #a50040 0%, #004d98 50%, #a50040 100%);
+  background-size: 100% 200%;
+  border-radius: var(--radius);
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 380px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 2px rgba(255, 216, 77, 0.4),
+    0 30px 80px rgba(165, 0, 64, 0.45);
+  transform-style: preserve-3d;
+  cursor: pointer;
+  transition: transform 0.4s, box-shadow 0.4s;
+  animation: jerseyShimmer 8s ease-in-out infinite;
+}
+@keyframes jerseyShimmer {
+  0%, 100% { background-position: 0% 0%; }
+  50%      { background-position: 0% 100%; }
+}
+.yamal-jersey:hover {
+  box-shadow:
+    0 0 0 2px var(--yellow),
+    0 40px 120px rgba(165, 0, 64, 0.7);
+}
+.jersey-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%);
+  pointer-events: none;
+  opacity: 0.6;
+}
+.jersey-club {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 2;
+}
+.jersey-number {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 12rem;
+  line-height: 0.85;
+  color: #fff;
+  text-shadow:
+    0 0 60px rgba(255, 216, 77, 0.6),
+    0 4px 0 rgba(0,0,0,0.25);
+  margin: 0.3rem 0;
+  position: relative;
+  z-index: 2;
+  font-weight: 400;
+}
+.jersey-name {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: 1.3rem;
+  letter-spacing: 0.3em;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  margin-top: 0.3rem;
+  position: relative;
+  z-index: 2;
+}
+.jersey-stripes {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  height: 8px;
+}
+.jersey-stripes span {
+  flex: 1;
+  height: 100%;
+}
+.jersey-stripes span:nth-child(1) { background: #d80027; }
+.jersey-stripes span:nth-child(2) { background: #ffd84d; }
+.jersey-stripes span:nth-child(3) { background: #d80027; }
+
+/* Stats */
+.yamal-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--bg-card);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius);
+  padding: 1rem 2rem;
+  justify-content: center;
+}
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.stat-row:last-child { border-bottom: none; }
+.stat-row .stat-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+}
+.stat-row .stat-value {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.3rem;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+}
+.stat-row.highlight .stat-value {
+  font-style: italic;
+  background: linear-gradient(135deg, #ffd84d, #ff6b35);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.yamal-quote {
+  margin-top: 3rem;
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  line-height: 1.4;
+  color: var(--fg);
+  text-align: center;
+  width: 100%;
+  letter-spacing: -0.01em;
+}
+.yamal-quote em {
+  font-style: italic;
+  color: var(--yellow);
+}
+
+@media (max-width: 720px) {
+  .yamal-grid { grid-template-columns: 1fr; }
+  .yamal-jersey { min-height: 320px; }
+  .jersey-number { font-size: 9rem; }
+}
+
+/* ============================================
+   POKÉBALL EASTER EGG
+   ============================================ */
+.pokeball-egg {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 480;
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+  opacity: 0.35;
+  transition: opacity 0.3s, transform 0.3s;
+  animation: pokeFloat 4s ease-in-out infinite;
+}
+.pokeball-egg:hover {
+  opacity: 1;
+  transform: scale(1.2) rotate(20deg);
+}
+.pokeball-egg.found {
+  opacity: 1;
+  animation: pokeFloat 4s ease-in-out infinite, pokeShake 0.5s ease-in-out;
+}
+.pokeball-egg.caught {
+  animation: pokeCatch 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+@keyframes pokeFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+@keyframes pokeShake {
+  0%, 100% { transform: rotate(0); }
+  25%      { transform: rotate(-15deg); }
+  75%      { transform: rotate(15deg); }
+}
+@keyframes pokeCatch {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.4) rotate(180deg); }
+  100% { transform: scale(0) rotate(720deg); opacity: 0; }
+}
+
+.pokeball {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.4),
+    inset -4px -4px 8px rgba(0,0,0,0.25),
+    inset 2px 2px 4px rgba(255,255,255,0.4);
+}
+.pokeball-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, #ff3b3b 0%, #cc1f1f 100%);
+}
+.pokeball-bottom {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, #f5f5f5 0%, #d0d0d0 100%);
+}
+.pokeball-band {
+  position: absolute;
+  top: 50%;
+  left: 0; right: 0;
+  height: 4px;
+  background: #1a1a1a;
+  transform: translateY(-50%);
+}
+.pokeball-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  background: radial-gradient(circle, #fff 30%, #ddd 100%);
+  border: 2px solid #1a1a1a;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+/* Pokémon catch popup */
+.poke-popup {
+  position: fixed;
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(2rem, 5vw, 4rem);
+  pointer-events: none;
+  z-index: 9000;
+  white-space: nowrap;
+  color: #ffd84d;
+  text-shadow: 0 0 30px rgba(255, 216, 77, 0.6);
+  animation: pokePopupAnim 1.6s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+@keyframes pokePopupAnim {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  20%  { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  70%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -80%) scale(0.9); }
+}
+
+/* ============================================
+   BRIEF P.S.
+   ============================================ */
+.brief-ps {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px dashed rgba(255,255,255,0.1);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  line-height: 1.7;
+  letter-spacing: 0.05em;
+  color: var(--fg-dim);
+}
+.brief-ps .ps-label {
+  color: var(--yellow);
+  font-weight: 500;
+  margin-right: 0.5rem;
+  letter-spacing: 0.2em;
+}
+.brief-ps .poke-mini {
+  display: inline-block;
+  margin-left: 0.3rem;
+  cursor: pointer;
+  font-size: 14px;
+  filter: hue-rotate(0deg);
+  transition: transform 0.3s, filter 0.3s;
+}
+.brief-ps .poke-mini:hover {
+  transform: rotate(360deg) scale(1.4);
+  filter: hue-rotate(180deg);
+}
+
+/* ============================================
+   COUNTDOWN HIGHLIGHT
+   ============================================ */
+.hero-date-pill.tomorrow {
+  background: linear-gradient(135deg, var(--yellow), var(--orange));
+  color: #0a0a0a;
+  font-weight: 700;
+  border-color: transparent;
+  box-shadow: 0 0 60px var(--yellow-glow);
+  animation: pillGlow 2s ease-in-out infinite;
+}
+.hero-date-pill.tomorrow .dot { background: #d80027; }
+.hero-date-pill.today {
+  background: linear-gradient(135deg, var(--blue), var(--pink));
+  color: #fff;
+  font-weight: 800;
+  border-color: transparent;
+  box-shadow: 0 0 80px rgba(255, 77, 158, 0.6);
+  animation: pillGlow 1.5s ease-in-out infinite;
+}
+@keyframes pillGlow {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+
 /* ========== Konami flash ========== */
 @keyframes konamiFlash {
   0%, 100% { opacity: 0; }

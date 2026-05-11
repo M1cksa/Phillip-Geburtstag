@@ -342,26 +342,49 @@
   /* ============================================
      COUNT-UP STATS
      ============================================ */
+  function startCountUp(el) {
+    if (el.dataset.counted) return;
+    el.dataset.counted = '1';
+    const target = parseInt(el.dataset.countTo, 10);
+    const dur = 1600;
+    const start = performance.now();
+    const tick = now => {
+      const p = Math.min((now - start) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const val = Math.floor(target * eased);
+      el.textContent = val.toLocaleString('de-DE');
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
   function initCountUps() {
     const els = document.querySelectorAll('[data-count-to]');
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting || entry.target.dataset.counted) return;
-        entry.target.dataset.counted = '1';
-        const target = parseInt(entry.target.dataset.countTo, 10);
-        const dur = 1800;
-        const start = performance.now();
-        const tick = now => {
-          const p = Math.min((now - start) / dur, 1);
-          const eased = 1 - Math.pow(1 - p, 3);
-          const val = Math.floor(target * eased);
-          entry.target.textContent = val.toLocaleString('de-DE');
-          if (p < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      });
-    }, { threshold: 0.4 });
-    els.forEach(el => obs.observe(el));
+    els.forEach(el => {
+      const parentLine = el.closest('[data-typeline]');
+      if (parentLine) {
+        // Wait for the typeline to reveal, then count up
+        if (parentLine.classList.contains('shown')) {
+          startCountUp(el);
+        } else {
+          const mo = new MutationObserver(() => {
+            if (parentLine.classList.contains('shown')) {
+              mo.disconnect();
+              startCountUp(el);
+            }
+          });
+          mo.observe(parentLine, { attributes: true, attributeFilter: ['class'] });
+        }
+      } else {
+        const obs = new IntersectionObserver(entries => {
+          if (entries[0].isIntersecting) {
+            obs.disconnect();
+            startCountUp(el);
+          }
+        }, { threshold: 0.4 });
+        obs.observe(el);
+      }
+    });
   }
 
   /* ============================================
@@ -378,21 +401,23 @@
   }
 
   /* ============================================
-     TERMINAL TYPE
+     TERMINAL TYPE — handles multiple terminals
      ============================================ */
   function initTerminal() {
-    const lines = document.querySelectorAll('[data-typeline]');
-    if (!lines.length) return;
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        obs.disconnect();
-        lines.forEach((line, i) => {
-          setTimeout(() => line.classList.add('shown'), i * 250);
+    document.querySelectorAll('.terminal').forEach(terminal => {
+      const lines = terminal.querySelectorAll('[data-typeline]');
+      if (!lines.length) return;
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          obs.disconnect();
+          lines.forEach((line, i) => {
+            setTimeout(() => line.classList.add('shown'), i * 180);
+          });
         });
-      });
-    }, { threshold: 0.35 });
-    obs.observe(document.querySelector('.terminal'));
+      }, { threshold: 0.25 });
+      obs.observe(terminal);
+    });
   }
 
   /* ============================================
@@ -433,15 +458,77 @@
     }, { threshold: 0.5 });
     obs.observe(el);
 
-    el.addEventListener('click', () => {
-      const popup = document.createElement('div');
-      popup.className = 'found-popup';
-      popup.textContent = 'Happy Birthday';
-      popup.style.left = (window.innerWidth / 2) + 'px';
-      popup.style.top = (window.innerHeight / 2) + 'px';
-      document.body.appendChild(popup);
-      setTimeout(() => popup.remove(), 1800);
+    el.addEventListener('click', e => {
+      pokeballCatch(e.clientX, e.clientY);
     });
+  }
+
+  /* ============================================
+     POKÉBALL CATCH ANIMATION
+     ============================================ */
+  const POKEBALL_SVG = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs><clipPath id="cbc"><circle cx="50" cy="50" r="46"/></clipPath></defs>
+    <g clip-path="url(#cbc)">
+      <rect x="0" y="0" width="100" height="50" fill="#ee3b3b"/>
+      <rect x="0" y="50" width="100" height="50" fill="#f5f5f5"/>
+    </g>
+    <circle cx="50" cy="50" r="46" fill="none" stroke="#0a0a0a" stroke-width="5"/>
+    <line x1="4" y1="50" x2="96" y2="50" stroke="#0a0a0a" stroke-width="7"/>
+    <circle cx="50" cy="50" r="15" fill="#0a0a0a"/>
+    <circle cx="50" cy="50" r="10" fill="#fff" stroke="#0a0a0a" stroke-width="2"/>
+    <circle cx="50" cy="50" r="3.5" fill="#0a0a0a"/>
+  </svg>`;
+
+  function pokeballCatch(x, y) {
+    // The ball appears at click, shakes, opens with a flash
+    const ball = document.createElement('div');
+    ball.className = 'catch-ball';
+    ball.style.left = (x - 40) + 'px';
+    ball.style.top = (y - 40) + 'px';
+    ball.innerHTML = POKEBALL_SVG;
+    document.body.appendChild(ball);
+
+    // Phase 1: drop in
+    setTimeout(() => ball.classList.add('shake'), 50);
+
+    // Phase 2: open with flash + caught message
+    setTimeout(() => {
+      ball.classList.remove('shake');
+      ball.classList.add('burst');
+
+      // Flash
+      const flash = document.createElement('div');
+      flash.className = 'catch-flash';
+      flash.style.setProperty('--fx', x + 'px');
+      flash.style.setProperty('--fy', y + 'px');
+      document.body.appendChild(flash);
+
+      // Sparks
+      for (let i = 0; i < 14; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'catch-spark';
+        const ang = (i / 14) * Math.PI * 2;
+        const dist = 80 + Math.random() * 100;
+        spark.style.left = x + 'px';
+        spark.style.top = y + 'px';
+        spark.style.setProperty('--tx', Math.cos(ang) * dist + 'px');
+        spark.style.setProperty('--ty', Math.sin(ang) * dist + 'px');
+        document.body.appendChild(spark);
+        setTimeout(() => spark.remove(), 900);
+      }
+
+      // GOTCHA message
+      const popup = document.createElement('div');
+      popup.className = 'catch-popup';
+      popup.innerHTML = '<span class="catch-title">GOTCHA!</span><span class="catch-sub">Philip caught.</span>';
+      document.body.appendChild(popup);
+
+      setTimeout(() => {
+        ball.remove();
+        flash.remove();
+        popup.remove();
+      }, 2000);
+    }, 1500);
   }
 
   /* ============================================

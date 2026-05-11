@@ -860,80 +860,253 @@ section {
 }
 
 /* ============================================
-   YAMAL
+   YAMAL — Cinematic Poster
    ============================================ */
 #yamal {
   align-items: flex-start;
   position: relative;
   overflow: hidden;
-  padding: 14vh 4vw;
+  padding: 14vh 6vw;
+  background: #07060a;
 }
-.yamal-stripe {
+.yamal-bg {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 20% 30%, rgba(216, 0, 39, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(255, 216, 77, 0.1) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 60% at 20% 30%, rgba(0, 77, 152, 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 80% 70%, rgba(165, 0, 68, 0.4) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(255, 216, 77, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+  animation: yamalBgShift 18s ease-in-out infinite;
+}
+@keyframes yamalBgShift {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.1); }
+}
+.yamal-grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.08 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  mix-blend-mode: overlay;
+  opacity: 0.6;
   pointer-events: none;
 }
 .yamal-content {
   position: relative;
   z-index: 2;
   width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
-.yamal-massive {
+
+.yamal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+.yamal-livetag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+}
+.yamal-livetag .ldot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffce00;
+  box-shadow: 0 0 8px #ffce00;
+  animation: livePulse 1.6s ease-in-out infinite;
+}
+
+/* The Stage — name overlaid on huge 10 */
+.yamal-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 60vh;
+  margin: 2rem 0 4rem;
+}
+.yamal-num {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 110%;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 30px 60px rgba(165, 0, 68, 0.3));
+  opacity: 0.95;
+}
+.yamal-name {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  line-height: 0.9;
+  pointer-events: none;
+}
+.yn-line {
   font-family: 'Instrument Serif', serif;
   font-style: italic;
-  font-size: clamp(3.5rem, 18vw, 22rem);
-  line-height: 0.85;
-  letter-spacing: -0.06em;
-  word-break: break-word;
-  background: linear-gradient(180deg, #fff 0%, #ffd84d 50%, #d80027 100%);
+  font-size: clamp(3.5rem, 14vw, 18rem);
+  letter-spacing: -0.05em;
+  background: linear-gradient(180deg, #ffffff 0%, #fff2d4 70%, rgba(255, 206, 0, 0.7) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 4rem;
-  position: relative;
+  text-shadow: 0 4px 40px rgba(0, 0, 0, 0.4);
+  filter: drop-shadow(0 4px 30px rgba(0, 0, 0, 0.5));
+  user-select: none;
+}
+.yn-first {
+  align-self: flex-start;
+  transform: translateX(-1vw);
+}
+.yn-second {
+  align-self: flex-end;
+  transform: translateX(2vw);
+  background: linear-gradient(180deg, #fff2d4 0%, #ffce00 50%, #dd0017 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.yamal-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3rem;
-  padding: 2rem 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  margin-bottom: 4rem;
-}
-.yamal-meta-block {
+/* Spanish flag corner accent */
+.yamal-flag {
+  position: absolute;
+  bottom: 1rem;
+  right: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  width: 60px;
+  height: 40px;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  z-index: 3;
 }
-.meta-key {
+.yamal-flag .flag-r {
+  flex: 1;
+  background: #c60b1e;
+}
+.yamal-flag .flag-y {
+  flex: 2;
+  background: #ffc400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  color: #6a0f0f;
+}
+
+/* Profile tag chips */
+.yamal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--line);
+}
+.ytag {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  backdrop-filter: blur(8px);
+  transition: border-color 0.3s, background 0.3s, transform 0.3s;
+}
+.ytag:hover {
+  border-color: rgba(255, 206, 0, 0.5);
+  background: rgba(255, 206, 0, 0.05);
+  transform: translateY(-2px);
+}
+.ytag.wide { flex: 1; min-width: 280px; }
+.ytag-k {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
   letter-spacing: 0.3em;
   color: var(--fg-dim);
+  text-transform: uppercase;
 }
-.meta-val {
-  font-family: 'Instrument Serif', serif;
-  font-size: 1.6rem;
-  letter-spacing: -0.01em;
+.ytag-v {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   color: var(--fg);
 }
 
+/* Pull quote */
 .yamal-quote {
+  position: relative;
   font-family: 'Instrument Serif', serif;
-  font-size: clamp(1.6rem, 4vw, 3rem);
-  line-height: 1.3;
+  font-size: clamp(1.8rem, 4vw, 3.4rem);
+  line-height: 1.25;
   letter-spacing: -0.02em;
-  max-width: 18ch;
+  max-width: 22ch;
   color: var(--fg);
+  padding: 2rem 0 0 4rem;
+  margin-top: 2rem;
+}
+.yamal-quote .qmark {
+  position: absolute;
+  top: -1rem;
+  left: 0;
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: clamp(6rem, 12vw, 12rem);
+  line-height: 0.8;
+  color: var(--accent-3);
+  text-shadow: 0 0 40px rgba(255, 216, 77, 0.5);
+  user-select: none;
 }
 .yamal-quote em {
   font-style: italic;
-  color: var(--accent-3);
+  background: linear-gradient(135deg, #ffce00, #dd0017);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.yamal-quote cite {
+  display: block;
+  margin-top: 1.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  color: var(--fg-dim);
+  font-style: normal;
+}
+
+@media (max-width: 720px) {
+  .yamal-stage { min-height: 50vh; }
+  .yamal-num { width: 130%; }
+  .yn-line { font-size: clamp(2.8rem, 13vw, 6rem); }
+  .yamal-flag { width: 44px; height: 30px; }
+  .ytag.wide { min-width: 100%; }
+  .yamal-quote { padding-left: 3rem; }
 }
 
 /* ============================================
@@ -1223,9 +1396,10 @@ section {
 .section-h,
 .section-p,
 .card-stage,
-.yamal-massive,
-.yamal-meta,
+.yamal-stage,
+.yamal-tags,
 .yamal-quote,
+.yamal-header,
 .stat-big,
 .game-tile,
 .terminal,
